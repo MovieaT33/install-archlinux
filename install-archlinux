@@ -73,22 +73,26 @@ DEVICE=/dev/vda
 ENCRYPTED_DEVICE_NAME=crypt
 VOLUME_GROUP_NAME=vg0
 
-echo "Encrypting device..."
+echo "Encrypting $DEVICE device..."
 
 ### Create luks partition
 
+echo "Creating luks partition..."
 cryptsetup luksFormat $DEVICE
 
 ### Open the encrypted device
 
+echo "Opening the $ENCRYPTED_DEVICE_NAME device..."
 cryptsetup luksOpen $DEVICE $ENCRYPTED_DEVICE_NAME
 
 ### Use the device as phisical volume
 
+echo "Using the device as phisical volume..."
 pvcreate /dev/mapper/$ENCRYPTED_DEVICE_NAME
 
 ### Create a volume group
 
+echo "Creating a $VOLUME_GROUP_NAME volume group..."
 vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
 
 ## Partition the disks
