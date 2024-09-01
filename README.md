@@ -29,10 +29,10 @@ This script automates the installation of Arch Linux with LUKS encryption using 
     git clone https://github.com/MovieaT33/install-archlinux.git
     ```
 
-3. Enter to the repository:
+3. Navigate to the repository:
 
     ```bash
-    install-archlinux
+    cd install-archlinux
     ```
 
 4. Install script:
