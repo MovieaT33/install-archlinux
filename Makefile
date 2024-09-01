@@ -26,5 +26,4 @@ update:
 	git pull
 
 uninstall:
-	rm -rf .
-	rmdir ../install-archlinux
+	rm -rf ../install-archlinux
