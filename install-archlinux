@@ -67,9 +67,13 @@ fi
 ### Use timedatectl(1) to ensure the system clock is synchronized
 # timedatectl
 
+## Partition the disks
+
+cfdisk /dev/vda  # TODO
+
 ## Encrypt device
 
-DEVICE=/dev/vda
+DEVICE=/dev/vda1
 ENCRYPTED_DEVICE_NAME=crypt
 VOLUME_GROUP_NAME=vg0
 
@@ -95,6 +99,12 @@ pvcreate /dev/mapper/$ENCRYPTED_DEVICE_NAME
 echo "Creating a $VOLUME_GROUP_NAME volume group..."
 vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
 
-## Partition the disks
+## Create the logical volumes
 
-...
+SWAP_SIZE="4G"
+
+echo "Creating the logical volumes..."
+echo "Creating the swap logical volume with $SWAP_SIZE size..."
+lvcreate -n swap -L $SWAP_SIZE $VOLUME_GROUP_NAME
+echo "Creating the root logical volume..."
+lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
