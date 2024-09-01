@@ -18,10 +18,7 @@
 
 RED="\033[31m"
 GREEN="\033[32m"
-BLUE="\033[33m"
 RESET="\033[0m"
-
-Y_or_n="${GREEN}Y${RESET}/${RED}n${RESET}"
 
 ERROR="${RED}Error{RESET}"
 OK="${GREEN}Error{RESET}"
@@ -37,14 +34,14 @@ OK="${GREEN}Error{RESET}"
 
 KEYBOARD_LAYOUT="us"
 loadkeys $KEYBOARD_LAYOUT
-echo -e "Setted the ${BLUE}keyboard layout${RESET} -> $KEYBOARD_LAYOUT"
+echo "Setted the keyboard layout -> $KEYBOARD_LAYOUT"
 
 ### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
 
 LARGE_FONT="ter-132b"
 DEFAULT_FONT=""
 
-read -pe "Want a ${BLUE}larger font${RESET}? [$Y_or_n] " answer
+read -p "Want a larger font? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
@@ -66,7 +63,7 @@ fw_platform_size=$(cat /sys/firmware/efi/fw_platform_size)
 printf "Verifying the boot mode..."
 
 if [[ $fw_platform_size -ne $EXPECTED_FW_PLATFORM_SIZE ]]; then
-	echo -e " ${ERROR}: The system must be UEFI $EXPECTED_FW_PLATFORM_SIZE-bit, not $fw_platform_size-bit"
+	echo -e " ${ERROR}: The system must be UEFI ${EXPECTED_FW_PLATFORM_SIZE}-bit, not ${fw_platform_size}-bit"
 	exit 1
 else
 	echo -e " ${OK}"
@@ -86,7 +83,7 @@ PING_COUNT=4
 printf "Verifying the connection to the internet..."
 
 if ! ping -c $PING_COUNT $HOST > /dev/null; then
-	echo -e " ${ERROR}: Unable to reach $HOST."
+	echo -e " ${ERROR}: Unable to reach ${HOST}."
 	exit 1
 else:
 	echo -e " ${OK}"
@@ -104,7 +101,7 @@ ENCRYPT_DEVICE="${DEVICE}2"
 ENCRYPTED_DEVICE_NAME="crypt"
 VOLUME_GROUP_NAME="vg0"
 
-read -p "Want to ${BLUE}format${RESET} your device? [Y/n] " answer
+read -p "Want to format your device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
@@ -113,22 +110,23 @@ fi
 
 ## Encrypt device
 
-echo "Encrypting ${BLUE}${ENCRYPT_DEVICE}${RESET} device..."
+echo "Encrypting ${ENCRYPT_DEVICE} device..."
 
 ### Create luks partition
 
 echo "Creating luks partition..."
-sleep 5
+
 read -p "Want to encrypt device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	cryptsetup luksFormat $DEVICE
+	echo "Created luks partition"
 
 ### Open the encrypted device
 
-	echo "Opening the $ENCRYPTED_DEVICE_NAME device..."
-	cryptsetup luksOpen $ENCRYPTED_DEVICE_NAME $ENCRYPTED_DEVICE_NAME
+	echo "Opening the $ENCRYPT_DEVICE device as $ENCRYPTED_DEVICE_NAME..."
+	cryptsetup luksOpen $ENCRYPT_DEVICE $ENCRYPTED_DEVICE_NAME
 fi
 
 ### Use the device as phisical volume
@@ -137,8 +135,9 @@ read -p "Want to create volumes? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	echo "Using the device as phisical volume..."
-	pvcreate /dev/mapper/$ENCRYPTED_DEVICE_NAME
+	echo "Using the device as physical volume..."
+	pvcreate "/dev/mapper/${ENCRYPTED_DEVICE_NAME}"
+	echo "Created physical volume"
 
 ### Create a volume group
 
