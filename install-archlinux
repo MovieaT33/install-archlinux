@@ -19,6 +19,7 @@
 RED="\033[31m"
 GREEN="\033[32m"
 RESET="\033[0m"
+echo "${GREEN}hello"
 
 # Pre-installation
 
@@ -64,7 +65,7 @@ fi
 ### The connection may be verified with ping:
 # ping archlinux.org
 
-HOST=archlinux.org
+HOST="archlinux.org"
 PING_COUNT=4
 
 echo "Verifying the connection to the internet..."
