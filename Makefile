@@ -23,6 +23,4 @@ run:
 	${INSTALLATION_SCRIPT}
 
 update:
-	git reset --hard
 	git pull
-
