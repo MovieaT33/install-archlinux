@@ -135,25 +135,28 @@ read -p "Want to create volumes? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	echo "Using the device as physical volume..."
+	printf "Using the device as physical volume..."
 	pvcreate "/dev/mapper/${ENCRYPTED_DEVICE_NAME}"
-	echo "Created physical volume"
+	echo " ${OK}"
 
 ### Create a volume group
 
 	echo "Creating a $VOLUME_GROUP_NAME volume group..."
 	vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
+	echo " ${OK}"
 
 ## Create the logical volumes
 
 	SWAP_SIZE="4G"
 
 	echo "Creating the logical volumes..."
-	echo "Creating the swap logical volume with $SWAP_SIZE size..."
+	printf "Creating the swap logical volume with $SWAP_SIZE size..."
 	lvcreate -n swap -L $SWAP_SIZE $VOLUME_GROUP_NAME
-	echo "Creating the root logical volume..."
+	echo " ${OK}"
+	printf "Creating the root logical volume..."
 	lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
+	echo " ${OK}"
 fi
 
-echo "The installation was ${GREEN}successful${RESET}!"
-echo "You can ${RED}uninstall${RED} installation script by \`make uninstall\` command."
+echo -e "The installation was ${GREEN}successful${RESET}!"
+echo -e "You can ${RED}uninstall${RED} installation script by \`make uninstall\` command."
