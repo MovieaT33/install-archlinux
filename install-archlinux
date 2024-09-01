@@ -21,7 +21,7 @@ GREEN="\033[32m"
 RESET="\033[0m"
 
 ERROR="${RED}Error${RESET}"
-OK="${GREEN}Error${RESET}"
+OK="${GREEN}Ok${RESET}"
 
 # Pre-installation
 
