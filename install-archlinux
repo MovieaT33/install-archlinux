@@ -16,20 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Set the console keyboard layout and font
+# Pre-installation
 
-## The default console keymap is US. Available layouts can be listed with:
+## Set the console keyboard layout and font
+
+### The default console keymap is US. Available layouts can be listed with:
 # localectl list-keymaps
 
-## To set the keyboard layout, pass its name to loadkeys(1). For example, to set a United States keyboard layout:
+### To set the keyboard layout, pass its name to loadkeys(1). For example, to set a United States keyboard layout:
 loadkeys us
 
-## Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
+### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
 # setfont ter-132b
 
-# Verify the boot mode
+## Verify the boot mode
 
-## To verify the boot mode, check the UEFI bitness:
+### To verify the boot mode, check the UEFI bitness:
 # cat /sys/firmware/efi/fw_platform_size
 
 EXPECTED_FW_PLATFORM_SIZE=64
@@ -42,12 +44,12 @@ if [[ $fw_platform_size -ne $EXPECTED_FW_PLATFORM_SIZE ]]; then
   exit 1
 fi
 
-# Connect to the internet
+## Connect to the internet
 
-## Ensure your network interface is listed and enabled, for example with ip-link(8):
+### Ensure your network interface is listed and enabled, for example with ip-link(8):
 # ip link
 
-## The connection may be verified with ping:
+### The connection may be verified with ping:
 # ping archlinux.org
 
 HOST="archlinux.org"
@@ -59,3 +61,8 @@ if ! ping -c $PING_COUNT $HOST > /dev/null; then
   echo "Error: Verifying the connection to the internet failed. Unable to reach $HOST."
   exit 1
 fi
+
+## Update the system clock
+
+### Use timedatectl(1) to ensure the system clock is synchronized
+timedatectl
