@@ -28,7 +28,7 @@ loadkeys us
 
 ### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
 
-read -p "Want a larger font? [Y/n]" answer
+read -p "Want a larger font? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
@@ -77,7 +77,7 @@ fi
 
 ## Partition the disks
 
-read -p "Want to format your device? [Y/n]" answer
+read -p "Want to format your device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
@@ -87,7 +87,7 @@ fi
 ## Encrypt device
 
 DEVICE=/dev/vda
-ENCRYPT_DEVICE=$DEVICE2
+ENCRYPT_DEVICE="$DEVICE2"
 ENCRYPTED_DEVICE_NAME=crypt
 VOLUME_GROUP_NAME=vg0
 
