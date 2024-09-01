@@ -159,4 +159,4 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 fi
 
 echo -e "The installation was ${GREEN}successful${RESET}!"
-echo -e "You can ${RED}uninstall${RED} installation script by \`make uninstall\` command."
+echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
