@@ -27,8 +27,14 @@
 loadkeys us
 
 ### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
-# setfont ter-132b
 
+read -p "Want a larger font? [Y/n]" answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == " " || "$answer" == "y" ]]; then
+  setfont ter-132b
+if
+sleep 55
 ## Verify the boot mode
 
 ### To verify the boot mode, check the UEFI bitness:
