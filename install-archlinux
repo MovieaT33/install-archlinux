@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-RED="\033[31m"
-GREEN="\033[32m"
+RED="\033[0;31m"
+GREEN="\033[0;32m"
 RESET="\033[0m"
 echo "${GREEN}hello"
 
