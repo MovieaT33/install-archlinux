@@ -20,49 +20,49 @@ This script automates the installation of Arch Linux with LUKS encryption using 
 1. Install `git` and `make` if they are not already installed.
 
     ```bash
-    sudo pacman -S git make
+    $ sudo pacman -S git make
     ```
 
 2. Clone the repository:
 
     ```bash
-    git clone https://github.com/MovieaT33/install-archlinux.git
+    $ git clone https://github.com/MovieaT33/install-archlinux.git
     ```
 
 3. Navigate to the repository:
 
     ```bash
-    cd install-archlinux
+    $ cd install-archlinux
     ```
 
 4. Install script:
 
     ```bash
-    make install
+    $ make install
     ```
 
 5. Run the installation script:
 
     ```bash
-    make run
+    $ make run
     ```
 
 6. To update the script or components, use:
 
     ```bash
-    make update
+    $ make update
     ```
 
 7. You can update, install run, use:
 
     ```bash
-    make
+    $ make
     ```
 
 7. Uninstall:
 
     ```bash
-    make uninstall
+    $ make uninstall
     ```
 
 ## License
