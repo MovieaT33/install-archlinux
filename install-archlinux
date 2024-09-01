@@ -44,7 +44,7 @@ echo -e "Setted the ${BLUE}keyboard layout${RESET} -> $KEYBOARD_LAYOUT"
 LARGE_FONT="ter-132b"
 DEFAULT_FONT=""
 
-read -p "Want a ${BLUE}larger font${RESET}? [$Y_or_n] " answer
+read -pe "Want a ${BLUE}larger font${RESET}? [$Y_or_n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
