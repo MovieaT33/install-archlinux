@@ -81,7 +81,7 @@ read -p "Want to format your device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	cfdisk /dev/vda  # TODO: auto formatting device
+	cfdisk $DEVICE  # TODO: auto formatting device
 fi
 
 ## Encrypt device
@@ -96,7 +96,7 @@ echo "Encrypting $ENCRYPT_DEVICE device..."
 ### Create luks partition
 
 echo "Creating luks partition..."
-read -p "Want to encrypt $ENCRYPT_DEVICE device? [Y/n]" answer
+read -p "Want to encrypt device? [Y/n]" answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
