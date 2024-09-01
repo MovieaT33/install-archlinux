@@ -5,8 +5,8 @@
 ## The default console keymap is US. Available layouts can be listed with:
 # localectl list-keymaps
 
-## To set the keyboard layout, pass its name to loadkeys(1). For example, to set a United Kingdom keyboard layout:
-loadkeys uk
+## To set the keyboard layout, pass its name to loadkeys(1). For example, to set a German keyboard layout:
+# loadkeys de-latin1
 
 ## Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
 # setfont ter-132b
@@ -19,8 +19,10 @@ loadkeys uk
 EXPECTED_FW_PLATFORM_SIZE=64
 fw_platform_size=$(cat /sys/firmware/efi/fw_platform_size)
 
+echo "Verifying the boot mode..."
+
 if [[ $fw_platform_size -ne $EXPECTED_FW_PLATFORM_SIZE ]]; then
-  echo "Error: fw_platform_size must be $EXPECTED_FW_PLATFORM_SIZE. The system must be UEFI $EXPECTED_FW_PLATFORM_SIZE-bit, not $fw_platform_size-bit."
+  echo "Error: Verifying the boot mode failed. The system must be UEFI $EXPECTED_FW_PLATFORM_SIZE-bit, not $fw_platform_size-bit."
   exit 1
 fi
 
@@ -31,3 +33,12 @@ fi
 
 ## The connection may be verified with ping:
 # ping archlinux.org
+
+HOST="archlinux.org"
+
+echo "Verifying the connection to the internet..."
+
+if ! ping -c 4 $HOST > /dev/null; then
+  echo "Error: Verifying the connection to the internet failed. Unable to reach $HOST."
+  exit 1
+fi
