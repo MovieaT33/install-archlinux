@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-RED=\033[31m
+RED="\033[31m"
 GREEN="\033[32m"
-RESET=\033[0m
+RESET="\033[0m"
 
 # Pre-installation
 
@@ -90,10 +90,10 @@ fi
 
 ## Encrypt device
 
-DEVICE=/dev/vda
+DEVICE="/dev/vda"
 ENCRYPT_DEVICE="${DEVICE}2"
-ENCRYPTED_DEVICE_NAME=crypt
-VOLUME_GROUP_NAME=vg0
+ENCRYPTED_DEVICE_NAME="crypt"
+VOLUME_GROUP_NAME="vg0"
 
 echo "Encrypting $ENCRYPT_DEVICE device..."
 
