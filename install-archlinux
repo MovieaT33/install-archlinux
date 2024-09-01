@@ -158,5 +158,15 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	echo " ${OK}"
 fi
 
+## Format the partitions
+
+echo "Formatting the partitions..."
+
+mkswap "/dev/${VOLUME_GROUP_NAME}/swap"
+mkfs.ext4 "/dev/${VOLUME_GROUP_NAME}/root"
+
+swapon /dev/MyVolGroup/swap
+...
+
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
