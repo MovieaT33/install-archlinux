@@ -87,7 +87,7 @@ fi
 ## Encrypt device
 
 DEVICE=/dev/vda
-ENCRYPT_DEVICE="$DEVICE2"
+ENCRYPT_DEVICE="${DEVICE}2"
 ENCRYPTED_DEVICE_NAME=crypt
 VOLUME_GROUP_NAME=vg0
 
@@ -96,6 +96,7 @@ echo "Encrypting $ENCRYPT_DEVICE device..."
 ### Create luks partition
 
 echo "Creating luks partition..."
+
 read -p "Want to encrypt device? [Y/n]" answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
@@ -105,10 +106,14 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 ### Open the encrypted device
 
 	echo "Opening the $ENCRYPTED_DEVICE_NAME device..."
-	cryptsetup luksOpen $DEVICE $ENCRYPTED_DEVICE_NAME
+	cryptsetup luksOpen $ENCRYPTED_DEVICE_NAME $ENCRYPTED_DEVICE_NAME
 
 ### Use the device as phisical volume
 
+read -p "Want to create volumes? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	echo "Using the device as phisical volume..."
 	pvcreate /dev/mapper/$ENCRYPTED_DEVICE_NAME
 
