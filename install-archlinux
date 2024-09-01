@@ -83,9 +83,9 @@ PING_COUNT=4
 printf "Verifying the connection to the internet..."
 
 if ! ping -c $PING_COUNT $HOST > /dev/null; then
-	echo -e " ${ERROR}: Unable to reach ${HOST}."
+	echo -e " ${ERROR}: Unable to reach ${HOST}"
 	exit 1
-else:
+else
 	echo -e " ${OK}"
 fi
 
