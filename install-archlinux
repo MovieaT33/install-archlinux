@@ -73,7 +73,7 @@ cfdisk /dev/vda  # TODO
 
 ## Encrypt device
 
-DEVICE=/dev/vda1
+DEVICE=/dev/vda2
 ENCRYPTED_DEVICE_NAME=crypt
 VOLUME_GROUP_NAME=vg0
 
