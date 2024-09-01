@@ -20,8 +20,8 @@ RED="\033[31m"
 GREEN="\033[32m"
 RESET="\033[0m"
 
-ERROR="${RED}Error{RESET}"
-OK="${GREEN}Error{RESET}"
+ERROR="${RED}Error${RESET}"
+OK="${GREEN}Error${RESET}"
 
 # Pre-installation
 
