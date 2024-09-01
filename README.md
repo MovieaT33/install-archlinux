@@ -1,6 +1,14 @@
-# install-archlinux
+# Arch Linux Installation Script
 
-Installation script with LUKS encryption using LVM for Arch Linux with UEFI 64-bit.
+![GitHub license](https://img.shields.io/github/license/MovieaT33/install-archlinux)
+![GitHub issues](https://img.shields.io/github/issues/MovieaT33/install-archlinux)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/MovieaT33/install-archlinux)
+![GitHub stars](https://img.shields.io/github/stars/MovieaT33/install-archlinux)
+![GitHub forks](https://img.shields.io/github/forks/MovieaT33/install-archlinux)
+
+## Description
+
+This script automates the installation of Arch Linux with LUKS encryption using LVM for Arch Linux with UEFI 64-bit architecture.
 
 ## Requirements
 
