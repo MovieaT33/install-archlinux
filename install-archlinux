@@ -16,6 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+RED="\033[31m"
+GREEN="\033[32m"
+BLUE="\033[33m"
+RESET="\033[0m"
+
+Y_or_n="${GREEN}Y${RESET}/${RED}n${RESET}"
+
+ERROR="${RED}Error{RESET}"
+OK="${GREEN}Error{RESET}"
+
 # Pre-installation
 
 ## Set the console keyboard layout and font
@@ -27,14 +37,14 @@
 
 KEYBOARD_LAYOUT="us"
 loadkeys $KEYBOARD_LAYOUT
-echo "Setted the keyboard layout -> $KEYBOARD_LAYOUT"
+echo "Setted the ${BLUE}keyboard layout${RESET} -> $KEYBOARD_LAYOUT"
 
 ### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
 
 LARGE_FONT="ter-132b"
 DEFAULT_FONT=""
 
-read -p "Want a larger font? [Y/n] " answer
+read -p "Want a ${BLUE}larger font${RESET}? [$Y_or_n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
@@ -53,11 +63,13 @@ setfont $FONT
 EXPECTED_FW_PLATFORM_SIZE=64
 fw_platform_size=$(cat /sys/firmware/efi/fw_platform_size)
 
-echo "Verifying the boot mode..."
+printf "Verifying the boot mode..."
 
 if [[ $fw_platform_size -ne $EXPECTED_FW_PLATFORM_SIZE ]]; then
-  echo "Error: Verifying the boot mode failed. The system must be UEFI $EXPECTED_FW_PLATFORM_SIZE-bit, not $fw_platform_size-bit."
-  exit 1
+	echo " ${ERROR}: The system must be UEFI $EXPECTED_FW_PLATFORM_SIZE-bit, not $fw_platform_size-bit"
+	exit 1
+else
+	echo " ${OK}"
 fi
 
 ## Connect to the internet
@@ -71,10 +83,10 @@ fi
 HOST="archlinux.org"
 PING_COUNT=4
 
-echo "Verifying the connection to the internet..."
+printf "Verifying the connection to the internet..."
 
 if ! ping -c $PING_COUNT $HOST > /dev/null; then
-  echo "Error: Verifying the connection to the internet failed. Unable to reach $HOST."
+  echo " ${ERROR}: Unable to reach $HOST."
   exit 1
 fi
 
@@ -85,7 +97,12 @@ fi
 
 ## Partition the disks
 
-read -p "Want to format your device? [Y/n] " answer
+DEVICE="/dev/vda"
+ENCRYPT_DEVICE="${DEVICE}2"
+ENCRYPTED_DEVICE_NAME="crypt"
+VOLUME_GROUP_NAME="vg0"
+
+read -p "Want to ${BLUE}format${RESET} your device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
@@ -94,17 +111,12 @@ fi
 
 ## Encrypt device
 
-DEVICE="/dev/vda"
-ENCRYPT_DEVICE="${DEVICE}2"
-ENCRYPTED_DEVICE_NAME="crypt"
-VOLUME_GROUP_NAME="vg0"
-
-echo "Encrypting $ENCRYPT_DEVICE device..."
+echo "Encrypting ${BLUE}${ENCRYPT_DEVICE}${RESET} device..."
 
 ### Create luks partition
 
 echo "Creating luks partition..."
-
+sleep 5
 read -p "Want to encrypt device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
