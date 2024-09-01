@@ -34,7 +34,7 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
   setfont ter-132b
 fi
-sleep 55
+
 ## Verify the boot mode
 
 ### To verify the boot mode, check the UEFI bitness:
@@ -75,8 +75,13 @@ fi
 
 ## Partition the disks
 
-cfdisk /dev/vda  # TODO
+read -p "Want to format your device? [Y/n]" answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	cfdisk /dev/vda  # TODO: auto formatting device
+fi
+sleep 55
 ## Encrypt device
 
 DEVICE=/dev/vda2
