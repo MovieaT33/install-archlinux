@@ -65,4 +65,32 @@ fi
 ## Update the system clock
 
 ### Use timedatectl(1) to ensure the system clock is synchronized
-timedatectl
+# timedatectl
+
+## Encrypt device
+
+DEVICE=/dev/vda
+ENCRYPTED_DEVICE_NAME=crypt
+VOLUME_GROUP_NAME=vg0
+
+echo "Encrypting device..."
+
+### Create luks partition
+
+cryptsetup luksFormat $DEVICE
+
+### Open the encrypted device
+
+cryptsetup luksOpen $DEVICE $ENCRYPTED_DEVICE_NAME
+
+### Use the device as phisical volume
+
+pvcreate /dev/mapper/$ENCRYPTED_DEVICE_NAME
+
+### Create a volume group
+
+vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
+
+## Partition the disks
+
+...
