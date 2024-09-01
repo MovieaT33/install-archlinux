@@ -32,7 +32,9 @@ read -p "Want a larger font? [Y/n]" answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
-  setfont ter-132b
+	setfont ter-132b
+else
+	setfont
 fi
 
 ## Verify the boot mode
@@ -58,7 +60,7 @@ fi
 ### The connection may be verified with ping:
 # ping archlinux.org
 
-HOST="archlinux.org"
+HOST=archlinux.org
 PING_COUNT=4
 
 echo "Verifying the connection to the internet..."
@@ -81,41 +83,50 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	cfdisk /dev/vda  # TODO: auto formatting device
 fi
-sleep 55
+
 ## Encrypt device
 
-DEVICE=/dev/vda2
+DEVICE=/dev/vda
+ENCRYPT_DEVICE=$DEVICE2
 ENCRYPTED_DEVICE_NAME=crypt
 VOLUME_GROUP_NAME=vg0
 
-echo "Encrypting $DEVICE device..."
+echo "Encrypting $ENCRYPT_DEVICE device..."
 
 ### Create luks partition
 
 echo "Creating luks partition..."
-cryptsetup luksFormat $DEVICE
+read -p "Want to encrypt $ENCRYPT_DEVICE device? [Y/n]" answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	cryptsetup luksFormat $DEVICE
 
 ### Open the encrypted device
 
-echo "Opening the $ENCRYPTED_DEVICE_NAME device..."
-cryptsetup luksOpen $DEVICE $ENCRYPTED_DEVICE_NAME
+	echo "Opening the $ENCRYPTED_DEVICE_NAME device..."
+	cryptsetup luksOpen $DEVICE $ENCRYPTED_DEVICE_NAME
 
 ### Use the device as phisical volume
 
-echo "Using the device as phisical volume..."
-pvcreate /dev/mapper/$ENCRYPTED_DEVICE_NAME
+	echo "Using the device as phisical volume..."
+	pvcreate /dev/mapper/$ENCRYPTED_DEVICE_NAME
 
 ### Create a volume group
 
-echo "Creating a $VOLUME_GROUP_NAME volume group..."
-vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
+	echo "Creating a $VOLUME_GROUP_NAME volume group..."
+	vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
 
 ## Create the logical volumes
 
-SWAP_SIZE="4G"
+	SWAP_SIZE="4G"
 
-echo "Creating the logical volumes..."
-echo "Creating the swap logical volume with $SWAP_SIZE size..."
-lvcreate -n swap -L $SWAP_SIZE $VOLUME_GROUP_NAME
-echo "Creating the root logical volume..."
-lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
+	echo "Creating the logical volumes..."
+	echo "Creating the swap logical volume with $SWAP_SIZE size..."
+	lvcreate -n swap -L $SWAP_SIZE $VOLUME_GROUP_NAME
+	echo "Creating the root logical volume..."
+	lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
+fi
+
+echo "The installation was successful!"
+echo "You can uninstall script by `make uninstall` command."
