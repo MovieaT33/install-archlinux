@@ -53,6 +53,18 @@ This script automates the installation of Arch Linux with LUKS encryption using 
     make update
     ```
 
+7. You can update, install run, use:
+
+    ```bash
+    make
+    ```
+
+7. Uninstall:
+
+    ```bash
+    make uninstall
+    ```
+
 ## License
 
 This project is licensed under the terms specified in [LICENSE.md](LICENSE.md).
