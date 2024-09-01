@@ -16,6 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+GREEN=\033[32m
+RESET=\033[0m
+
 # Pre-installation
 
 ## Set the console keyboard layout and font
@@ -134,5 +137,5 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
 fi
 
-echo "The installation was successful!"
+echo "The installation was ${GREEN}successful${RESET}!"
 echo "You can uninstall script by `make uninstall` command."
