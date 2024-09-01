@@ -24,3 +24,7 @@ run:
 
 update:
 	git pull
+
+uninstall:
+	rm -rf .
+	rmdir ../install-archlinux
