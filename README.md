@@ -5,11 +5,11 @@ Installation script with LUKS encryption using LVM for Arch Linux with UEFI 64-b
 ## Requirements
 
 - A system with UEFI 64-bit firmware.
-- `git` and `make` installed on your system.
+- `git` and `make`.
 
 ## Installation
 
-1. Install `git` and `make` if they are not already installed. On an Arch Linux system:
+1. Install `git` and `make` if they are not already installed.
 
     ```bash
     sudo pacman -S git make
@@ -21,13 +21,13 @@ Installation script with LUKS encryption using LVM for Arch Linux with UEFI 64-b
     git clone https://github.com/MovieaT33/install-archlinux.git
     ```
 
-3. Navigate to the cloned directory:
+3. Enter to the repository:
 
     ```bash
     install-archlinux
     ```
 
-4. Install the necessary components:
+4. Install script:
 
     ```bash
     make install
@@ -47,6 +47,4 @@ Installation script with LUKS encryption using LVM for Arch Linux with UEFI 64-b
 
 ## License
 
-This project is licensed under the terms specified in `/root/LICENSE.md`.
-
-For more details, please refer to the (LICENSE.md)[LICENSE.md] file included in the repository.
+This project is licensed under the terms specified in [LICENSE.md](LICENSE.md).
