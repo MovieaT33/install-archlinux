@@ -35,10 +35,11 @@ fi
 # ping archlinux.org
 
 HOST="archlinux.org"
+PING_COUNT=4
 
 echo "Verifying the connection to the internet..."
 
-if ! ping -c 4 $HOST > /dev/null; then
+if ! ping -c $PING_COUNT $HOST > /dev/null; then
   echo "Error: Verifying the connection to the internet failed. Unable to reach $HOST."
   exit 1
 fi
