@@ -1,2 +1,3 @@
 # install-archlinux
-Installation script with LVM and LUKS encryption for Arch Linux.
+
+Installation script with LUKS encryption using LVM for Arch Linux with UEFI.
