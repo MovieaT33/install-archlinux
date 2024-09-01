@@ -33,7 +33,7 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == " " || "$answer" == "y" ]]; then
   setfont ter-132b
-if
+fi
 sleep 55
 ## Verify the boot mode
 
