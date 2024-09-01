@@ -31,7 +31,7 @@ loadkeys us
 read -p "Want a larger font? [Y/n]" answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
-if [[ "$answer" == " " || "$answer" == "y" ]]; then
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
   setfont ter-132b
 fi
 sleep 55
