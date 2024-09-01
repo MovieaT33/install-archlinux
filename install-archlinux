@@ -37,7 +37,7 @@ OK="${GREEN}Error{RESET}"
 
 KEYBOARD_LAYOUT="us"
 loadkeys $KEYBOARD_LAYOUT
-echo "Setted the ${BLUE}keyboard layout${RESET} -> $KEYBOARD_LAYOUT"
+echo -e "Setted the ${BLUE}keyboard layout${RESET} -> $KEYBOARD_LAYOUT"
 
 ### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
 
@@ -66,10 +66,10 @@ fw_platform_size=$(cat /sys/firmware/efi/fw_platform_size)
 printf "Verifying the boot mode..."
 
 if [[ $fw_platform_size -ne $EXPECTED_FW_PLATFORM_SIZE ]]; then
-	echo " ${ERROR}: The system must be UEFI $EXPECTED_FW_PLATFORM_SIZE-bit, not $fw_platform_size-bit"
+	echo -e " ${ERROR}: The system must be UEFI $EXPECTED_FW_PLATFORM_SIZE-bit, not $fw_platform_size-bit"
 	exit 1
 else
-	echo " ${OK}"
+	echo -e " ${OK}"
 fi
 
 ## Connect to the internet
@@ -86,8 +86,10 @@ PING_COUNT=4
 printf "Verifying the connection to the internet..."
 
 if ! ping -c $PING_COUNT $HOST > /dev/null; then
-  echo " ${ERROR}: Unable to reach $HOST."
-  exit 1
+	echo -e " ${ERROR}: Unable to reach $HOST."
+	exit 1
+else:
+	echo -e " ${OK}"
 fi
 
 ## Update the system clock
