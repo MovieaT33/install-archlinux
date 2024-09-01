@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+all: update install run
+
 INSTALLATION_SCRIPT=./install-archlinux
 
 install:
@@ -23,6 +25,7 @@ run:
 	${INSTALLATION_SCRIPT}
 
 update:
+	git reset --hard
 	git pull
 
 uninstall:
