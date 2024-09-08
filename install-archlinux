@@ -41,10 +41,10 @@ echo "Setted the keyboard layout -> $KEYBOARD_LAYOUT"
 LARGE_FONT="ter-132b"
 DEFAULT_FONT=""
 
-read -p "Want a larger font? [Y/n] " answer
+read -p "Want a larger font? [y/N] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
+if [[ "$answer" == "y" ]]; then
 	FONT=$LARGE_FONT
 else
 	FONT=$DEFAULT_FONT
@@ -97,6 +97,7 @@ fi
 ## Partition the disks
 
 DEVICE="/dev/vda"
+EFI_DEVICE="${DEVICE}2"
 ENCRYPT_DEVICE="${DEVICE}2"
 ENCRYPTED_DEVICE_NAME="crypt"
 VOLUME_GROUP_NAME="vg0"
@@ -160,13 +161,25 @@ fi
 
 ## Format the partitions
 
-echo "Formatting the partitions..."
+read -p "Want to format device? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
-mkswap "/dev/${VOLUME_GROUP_NAME}/swap"
-mkfs.ext4 "/dev/${VOLUME_GROUP_NAME}/root"
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	echo "Formatting the partitions..."
 
-swapon /dev/MyVolGroup/swap
-...
+	echo "Formatiing efi..."
+	mkfs.fat -F32 $EFI_DEVICE
+
+	echo "Formatting swap..."
+	mkswap "/dev/${VOLUME_GROUP_NAME}/swap"
+	swapon "/dev/${VOLUME_GROUP_NAME}/swap"
+
+	echo "Formatiing root..."
+	mkfs.ext4 "/dev/${VOLUME_GROUP_NAME}/root"
+
+## Mount the file systems
+
+# TODO
 
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
