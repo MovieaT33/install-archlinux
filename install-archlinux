@@ -112,7 +112,7 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	# cfdisk $DEVICE
 	echo -e "g\nn\n1\n\n+1G\nt\n1\nw" | fdisk $DEVICE
-	echo -e "n\n2\n\n\n\nt\n2\n31\nw" | fdisk $DEVICE
+	echo -e "n\n2\n\n\n\nt\n2\n44\nw" | fdisk $DEVICE
 fi
 
 ## Encrypt device
