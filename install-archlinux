@@ -33,8 +33,9 @@ OK="${GREEN}Ok${RESET}"
 ### To set the keyboard layout, pass its name to loadkeys(1). For example, to set a United States keyboard layout:
 
 KEYBOARD_LAYOUT="us"
+
 loadkeys $KEYBOARD_LAYOUT
-echo "Setted the keyboard layout -> $KEYBOARD_LAYOUT"
+echo "Current keyboard layout: $KEYBOARD_LAYOUT"
 
 ### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
 
@@ -51,6 +52,7 @@ else
 fi
 
 setfont $FONT
+echo "Current font: $FONT"
 
 ## Verify the boot mode
 
@@ -80,7 +82,7 @@ fi
 HOST="archlinux.org"
 PING_COUNT=4
 
-printf "Verifying the connection to the internet..."
+printf "Pinging host "$PING_COUNT" times..."
 
 if ! ping -c $PING_COUNT $HOST > /dev/null; then
 	echo -e " ${ERROR}: Unable to reach ${HOST}"
@@ -92,12 +94,14 @@ fi
 ## Update the system clock
 
 ### Use timedatectl(1) to ensure the system clock is synchronized
-# timedatectl
+timedatectl set-timezone UTC
+echo "Current time:"
+timedatectl
 
 ## Partition the disks
 
 DEVICE="/dev/vda"
-EFI_DEVICE="${DEVICE}2"
+EFI_DEVICE="${DEVICE}1"
 ENCRYPT_DEVICE="${DEVICE}2"
 ENCRYPTED_DEVICE_NAME="crypt"
 VOLUME_GROUP_NAME="vg0"
@@ -111,18 +115,14 @@ fi
 
 ## Encrypt device
 
-echo "Encrypting ${ENCRYPT_DEVICE} device..."
-
 ### Create luks partition
-
-echo "Creating luks partition..."
 
 read -p "Want to encrypt device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	echo "Encrypting ${ENCRYPT_DEVICE} device..."
 	cryptsetup luksFormat $DEVICE
-	echo "Created luks partition"
 
 ### Open the encrypted device
 
@@ -151,9 +151,11 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	SWAP_SIZE="4G"
 
 	echo "Creating the logical volumes..."
+
 	printf "Creating the swap logical volume with $SWAP_SIZE size..."
 	lvcreate -n swap -L $SWAP_SIZE $VOLUME_GROUP_NAME
 	echo " ${OK}"
+
 	printf "Creating the root logical volume..."
 	lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
 	echo " ${OK}"
@@ -172,14 +174,29 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 
 	echo "Formatting swap..."
 	mkswap "/dev/${VOLUME_GROUP_NAME}/swap"
-	swapon "/dev/${VOLUME_GROUP_NAME}/swap"
 
 	echo "Formatiing root..."
 	mkfs.ext4 "/dev/${VOLUME_GROUP_NAME}/root"
+fi
 
 ## Mount the file systems
 
-# TODO
+MNT="/mnt"
+
+read -p "Want to mount file system? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	echo "Mounting file systems..."
+
+	echo "Mounting efi..."
+	mount --mkdir $EFI_DEVICE /mnt/boot
+
+	echo "Mounting root..."
+	mount "/dev/${VOLUME_GROUP_NAME}/root" $MNT
+	
+	echo "Mounting swap..."
+	swapon "/dev/${VOLUME_GROUP_NAME}/swap"
 
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
