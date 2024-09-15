@@ -217,5 +217,14 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	systemctl start reflector.timer
 fi
 
+## Install essential packages
+
+read -p "Want to install essential packages -> ${MNT}? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	pacstrap -K $MNT base linux linux-firmware
+fi
+
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
