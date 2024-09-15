@@ -31,8 +31,6 @@ update:
 	git pull
 
 uninstall:
-	rm -rf ../install-archlinux
-
 	@read -p "Delete git and make? [y/N] " answer; \
 	answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]'); \ 
 
@@ -42,3 +40,5 @@ uninstall:
 	else \ 
 		echo "Skipping deletion"; \ 
 	fi
+
+	rm -rf ../install-archlinux
