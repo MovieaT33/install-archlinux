@@ -30,3 +30,4 @@ update:
 
 uninstall:
 	rm -rf ../install-archlinux
+	pacman -R git make
