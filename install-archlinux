@@ -200,5 +200,20 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	echo "Mounting swap..."
 	swapon "/dev/${VOLUME_GROUP_NAME}/swap"
 
+# Installation
+
+## Select the mirrors
+
+read -p "Want to install and use reflector? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	sudo pacman -Sy reflector
+
+	reflector -c "United Kingdom" --age 6 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+
+	systemctl enable reflector.timer
+	systemctl start reflector.timer
+
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
