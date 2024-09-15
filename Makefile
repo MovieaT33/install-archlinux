@@ -32,8 +32,9 @@ update:
 
 uninstall:
 	@read -p "Delete git and make? [y/N] " answer; \
-	answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]'); \ 
-	if [[ "$answer" == "y" ]]; then \ 
+	answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]'); \
+
+	if [ "$answer" = "y" ]; then \ 
 		echo "Deleting git and make..."; \
 		sudo pacman -R git make; \
 	else \ 
