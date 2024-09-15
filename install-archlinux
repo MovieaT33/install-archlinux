@@ -74,16 +74,6 @@ fi
 
 ## Connect to the internet
 
-read -p "Want to install and use NetworkManager? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	sudo pacman -Sy networkmanager
-
-	systemctl enable NetworkManager
-	systemctl start NetworkManager
-fi
-
 ### Ensure your network interface is listed and enabled, for example with ip-link(8):
 # ip link
 
@@ -210,20 +200,6 @@ fi
 
 # Installation
 
-## Select the mirrors
-
-read -p "Want to install and use reflector? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	sudo pacman -Sy reflector
-
-	reflector -c "United Kingdom" --age 6 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-
-	systemctl enable reflector.timer
-	systemctl start reflector.timer
-fi
-
 ## Install essential packages
 
 read -p "Want to install essential packages -> ${MNT}? [Y/n] " answer
@@ -231,7 +207,8 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	pacstrap -K $MNT base linux linux-firmware
-	pacstrap -K $MNT neovim
+	pacstrap -K $MNT networkmanager reflector neovim
+	pacstrap -K $MNT lvm2
 fi
 
 # Configure the system
@@ -239,6 +216,18 @@ fi
 ## Fstab
 
 genfstab -U $MNT >> /mnt/etc/fstab
+
+## Network manager
+
+arch-chroot $MNT systemctl enable NetworkManager
+arch-chroot $MNT systemctl start NetworkManager
+
+## Select the mirrors
+
+arch-chroot $MNT reflector -c "United Kingdom" --age 6 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+
+arch-chroot $MNT systemctl enable reflector.timer
+arch-chroot $MNT systemctl start reflector.timer
 
 ## Time
 
