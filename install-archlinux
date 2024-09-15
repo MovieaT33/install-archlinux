@@ -77,7 +77,7 @@ read -p "Want to install and use NetworkManager? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	sudo pacman -Sy NetworkManager
+	sudo pacman -Sy networkmanager
 
 	systemctl enable NetworkManager
 	systemctl start NetworkManager
