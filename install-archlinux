@@ -73,6 +73,16 @@ fi
 
 ## Connect to the internet
 
+read -p "Want to install and use NetworkManager? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	sudo pacman -Sy NetworkManager
+
+	systemctl enable NetworkManager
+	systemctl start NetworkManager
+fi
+
 ### Ensure your network interface is listed and enabled, for example with ip-link(8):
 # ip link
 
@@ -225,6 +235,16 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	pacstrap -K $MNT base linux linux-firmware
 fi
+
+# Configure the system
+
+## Fstab
+
+genfstab -U $MNT >> /mnt/etc/fstab
+
+## Chroot
+
+# arch-chroot $MNT
 
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
