@@ -29,6 +29,7 @@ OK="${GREEN}Ok${RESET}"
 
 ### The default console keymap is US. Available layouts can be listed with:
 # localectl list-keymaps
+loadkeys us
 
 ### To set the keyboard layout, pass its name to loadkeys(1). For example, to set a United States keyboard layout:
 
