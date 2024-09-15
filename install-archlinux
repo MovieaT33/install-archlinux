@@ -230,6 +230,7 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	pacstrap -K $MNT base linux linux-firmware
+	pacstrap -K $MNT neovim
 fi
 
 # Configure the system
@@ -238,9 +239,17 @@ fi
 
 genfstab -U $MNT >> /mnt/etc/fstab
 
-## Chroot
+## Time
 
-# arch-chroot $MNT
+arch-chroot $MNT ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+arch-chroot $MNT hwclock --systohc
+
+## Localization
+
+nvim /etc/locale.gen
+locale-gen
+
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
