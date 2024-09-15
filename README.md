@@ -8,7 +8,7 @@
 
 ## Description
 
-This script automates the installation of Arch Linux with LUKS encryption using LVM and UEFI 64-bit architecture in United Kingdom.
+This script automates the installation of Arch Linux with LUKS encryption using LVM, UEFI 64-bit architecture and US localization in United Kingdom.
 
 ## Requirements
 
