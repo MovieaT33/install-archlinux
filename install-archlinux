@@ -150,13 +150,11 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	printf "Using the device as physical volume..."
 	pvcreate "/dev/mapper/${ENCRYPTED_DEVICE_NAME}"
-	echo -e " ${OK}"
 
 ### Create a volume group
 
 	echo "Creating a $VOLUME_GROUP_NAME volume group..."
 	vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
-	echo -e " ${OK}"
 
 ## Create the logical volumes
 
@@ -166,11 +164,9 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 
 	printf "Creating the swap logical volume with $SWAP_SIZE size..."
 	lvcreate -n swap -L $SWAP_SIZE $VOLUME_GROUP_NAME
-	echo -e " ${OK}"
 
 	printf "Creating the root logical volume..."
 	lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
-	echo -e " ${OK}"
 fi
 
 ## Format the partitions
