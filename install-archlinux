@@ -252,5 +252,24 @@ locale-gen
 
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
+echo "KEYMAP=us" > /etc/vconsole.conf
+
+## Network configuration
+
+HOSTNAME="archlinux"
+echo $HOSTNAME > /etc/hostname
+
+## Update mkinitcpio
+
+nvim /etc/mkinitcpio.conf
+
+## Initramfs
+
+mkinitcpio -P
+
+## Root password
+
+passwd
+
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
