@@ -266,15 +266,15 @@ ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Update mkinitcpio
 
-nvim /etc/mkinitcpio.conf
+arch-chroot $MNT nvim /etc/mkinitcpio.conf
 
 ## Initramfs
 
-mkinitcpio -P
+arch-chroot $MNT mkinitcpio -P
 
 ## Root password
 
-passwd
+arch-chroot $MNT passwd
 
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
