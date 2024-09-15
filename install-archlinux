@@ -247,17 +247,22 @@ arch-chroot $MNT hwclock --systohc
 
 ## Localization
 
-nvim /etc/locale.gen
-locale-gen
+arch-chroot $MNT nvim /etc/locale.gen
+arch-chroot $MNT locale-gen
 
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
+arch-chroot $MNT echo "LANG=en_US.UTF-8" > /etc/locale.conf
 
-echo "KEYMAP=us" > /etc/vconsole.conf
+arch-chroot $MNT echo "KEYMAP=us" > /etc/vconsole.conf
 
 ## Network configuration
 
 HOSTNAME="archlinux"
-echo $HOSTNAME > /etc/hostname
+arch-chroot $MNT echo $HOSTNAME > /etc/hostname
+
+arch-chroot $MNT echo "127.0.0.1       localhost" >> /etc/hosts
+arch-chroot $MNT echo "::1             localhost ip6-localhost ip6-loopback
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters" >> /etc/hosts
 
 ## Update mkinitcpio
 
