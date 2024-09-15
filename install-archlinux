@@ -106,7 +106,7 @@ ENCRYPT_DEVICE="${DEVICE}2"
 ENCRYPTED_DEVICE_NAME="crypt"
 VOLUME_GROUP_NAME="vg0"
 
-read -p "Want to format your device? [Y/n] " answer
+read -p "Want to format device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
@@ -165,7 +165,7 @@ fi
 
 ## Format the partitions
 
-read -p "Want to format device? [Y/n] " answer
+read -p "Want to format sections? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
