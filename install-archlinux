@@ -308,9 +308,18 @@ arch-chroot $MNT passwd
 
 ## GRUB
 
-arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory="/${EFI_DIR}" --bootloader-id=GRUB
+read -p "Want to install GRUB? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
-arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	CRYPT_UUID=$(blkid -s UUID -o value $ENCRYPT_DEVICE)
+
+	arch-chroot $MNT bash -c "sed -i 's/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:root root=\/dev\/mapper\/root /' /etc/default/grub"
+
+	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory="/${EFI_DIR}" --bootloader-id=GRUB
+
+	arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
+fi
 
 echo -e "The installation was ${GREEN}successful${RESET}!"
 echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
