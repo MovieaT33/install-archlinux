@@ -227,7 +227,7 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	echo "Mounting file systems..."
 
-	echo "Mounting root..." # First root no efi partition
+	echo "Mounting root..." # First root partition
 	mount "/dev/${VOLUME_GROUP_NAME}/root" $MNT
 
 	echo "Mounting efi..."
@@ -247,10 +247,10 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	# pacstrap -K $MNT base linux linux-firmware
 	# pacstrap -K $MNT networkmanager reflector neovim
-	# pacstrap -K $MNT lvm2
+	# pacstrap -K $MNT lvm2 grub efibootmgr  # TODO: delete efibootmgr?
 	pacstrap -K $MNT base linux linux-firmware \
 			 networkmanager reflector neovim \
-			 lvm2
+			 lvm2 grub efibootmgr
 fi
 
 # Configure the system
