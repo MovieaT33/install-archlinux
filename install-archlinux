@@ -144,6 +144,7 @@ fi
 ## Update the system clock
 
 ### Use timedatectl(1) to ensure the system clock is synchronized
+
 timedatectl set-timezone $TIMEZONE
 echo "Current time:"
 timedatectl
