@@ -314,7 +314,7 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	CRYPT_UUID=$(blkid -s UUID -o value $ENCRYPT_DEVICE)
 
-	arch-chroot $MNT bash -c "sed -i 's/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:root root=\/dev\/mapper\/${VOLUME_GROUP_NAME}-root /' /etc/default/grub"
+	arch-chroot $MNT bash -c "sed -i 's/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:root root=\/dev\/mapper\/${VOLUME_GROUP_NAME}-root/' /etc/default/grub"
 
 	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory="/${EFI_DIR}" --bootloader-id=GRUB
 
