@@ -267,7 +267,7 @@ arch-chroot $MNT systemctl start NetworkManager
 
 ## Select the mirrors
 
-arch-chroot $MNT reflector -c $REFLECTOR_COUNTRY --age $REFLECTOR_AGE --protocol $REFLECTOR_PROTOCOL --sort $REFLECTOR_SORT --save /etc/pacman.d/mirrorlist
+arch-chroot $MNT reflector -c "$REFLECTOR_COUNTRY" --age $REFLECTOR_AGE --protocol "$REFLECTOR_PROTOCOL" --sort $REFLECTOR_SORT --save /etc/pacman.d/mirrorlist
 
 arch-chroot $MNT systemctl enable reflector.timer
 arch-chroot $MNT systemctl start reflector.timer
