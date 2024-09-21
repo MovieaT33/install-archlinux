@@ -313,11 +313,21 @@ arch-chroot $MNT echo $HOSTS_IP6 >> /etc/hosts
 
 ## Update mkinitcpio
 
-arch-chroot $MNT nvim /etc/mkinitcpio.conf # TODO: auto
+read -p "Want to update mkinitcpio configuration? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	arch-chroot $MNT nvim /etc/mkinitcpio.conf # TODO: auto
+fi
 
 ## Initramfs
 
-arch-chroot $MNT mkinitcpio -P
+read -p "Want to update mkinitcpio? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	arch-chroot $MNT mkinitcpio -P
+fi
 
 ## Root password
 
