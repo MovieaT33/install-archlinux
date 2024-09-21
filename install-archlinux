@@ -332,4 +332,4 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	reboot
 fi
 
-# TODO: /tmp to RAM
+# TODO: /tmp to RAM; history -c
