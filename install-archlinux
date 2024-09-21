@@ -296,7 +296,7 @@ arch-chroot $MNT sed -i "/^#${KEYBOARD_LANG_LOCALE_CHARSET}/s/^#//" /etc/locale.
 arch-chroot $MNT locale-gen
 
 arch-chroot $MNT echo "LANG=${KEYBOARD_LANG_LOCALE}" > /etc/locale.conf
-arch-chroot $MNT echo "KEYMAP=$KEYBOARD_KEYMAP" > /etc/vconsole.conf
+arch-chroot $MNT echo "KEYMAP=${KEYBOARD_KEYMAP}" > /etc/vconsole.conf
 
 ## Network configuration
 
@@ -330,7 +330,7 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	arch-chroot $MNT sed -i "s/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:${VOLUME_GROUP_NAME} root=\/dev\/mapper\/${VOLUME_GROUP_NAME}-root/" /etc/default/grub
 	arch-chroot $MNT sed -i "/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y" /etc/default/grub
 
-	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory="${EFI_DIR}" --bootloader-id=GRUB
+	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory=$EFI_DIR --bootloader-id=GRUB
 
 	arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
 fi
