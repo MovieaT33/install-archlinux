@@ -30,7 +30,9 @@ OK="${GREEN}Ok${RESET}"
 KEYBOARD_KEYMAP="us"
 KEYBOARD_LAYOUT="us"
 
-KEYBOARD_LANG="en_US.UTF-8"
+KEYBOARD_LANG_LOCALE="en_US.UTF-8"
+KEYBOARD_LANG_CHARSET="UTF-8"
+KEYBOARD_LANG_LOCALE_CHARSET="${KEYBOARD_LANG_LOCALE} ${KEYBOARD_LANG_CHARSET}"
 
 ## Console fonts
 
@@ -285,13 +287,11 @@ arch-chroot $MNT hwclock --systohc
 
 ## Localization
 
-arch-chroot $MNT nvim /etc/locale.gen # TODO: auto
-arch-chroot $MNT sed -i "/^#en_US.UTF-8 UTF-8/s/^#//" /etc/locale.gen
+arch-chroot $MNT sed -i "/^#${KEYBOARD_LANG_LOCALE_CHARSET}/s/^#//" /etc/locale.gen
 arch-chroot $MNT locale-gen
 
-arch-chroot $MNT echo "LANG=en_US.UTF-8" > /etc/locale.conf # TODO: auto
-
-arch-chroot $MNT echo "KEYMAP=us" > /etc/vconsole.conf # TODO: auto
+arch-chroot $MNT echo "LANG=${KEYBOARD_LANG_LOCALE}" > /etc/locale.conf
+arch-chroot $MNT echo "KEYMAP=$KEYBOARD_KEYMAP" > /etc/vconsole.conf
 
 ## Network configuration
 
