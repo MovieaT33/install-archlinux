@@ -69,7 +69,7 @@ TIMEZONE="UTC"
 MNT="/mnt"
 BOOT_DIR="/boot"
 EFI_DIR="${BOOT_DIR}/efi"
-MNT_BOOT="${MNT}${EFI_DIR}"
+MNT_BOOT_EFI_DIR="${MNT}${EFI_DIR}"
 
 ## Reflector
 
@@ -275,11 +275,13 @@ fi
 
 ## Network manager
 
+echo "Setting NetworkManager..."
 arch-chroot $MNT systemctl enable NetworkManager
 arch-chroot $MNT systemctl start NetworkManager
 
 ## Select the mirrors
 
+echo "Setting reflector..."
 arch-chroot $MNT reflector -c "$REFLECTOR_COUNTRY" --age $REFLECTOR_AGE --protocol "$REFLECTOR_PROTOCOL" --sort $REFLECTOR_SORT --save /etc/pacman.d/mirrorlist
 
 arch-chroot $MNT systemctl enable reflector.timer
@@ -287,11 +289,13 @@ arch-chroot $MNT systemctl start reflector.timer
 
 ## Time
 
+echo "Setting time..."
 arch-chroot $MNT ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 arch-chroot $MNT hwclock --systohc
 
 ## Localization
 
+echo "Setting localization..."
 arch-chroot $MNT sed -i "/^#${KEYBOARD_LANG_LOCALE_CHARSET}/s/^#//" /etc/locale.gen
 arch-chroot $MNT locale-gen
 
@@ -300,6 +304,7 @@ arch-chroot $MNT echo "KEYMAP=${KEYBOARD_KEYMAP}" > /etc/vconsole.conf
 
 ## Network configuration
 
+echo "Setting network configuration..."
 arch-chroot $MNT echo $HOSTNAME > /etc/hostname
 
 arch-chroot $MNT echo "
@@ -330,7 +335,7 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	arch-chroot $MNT sed -i "s/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:${VOLUME_GROUP_NAME} root=\/dev\/mapper\/${VOLUME_GROUP_NAME}-root/" /etc/default/grub
 	arch-chroot $MNT sed -i "/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y" /etc/default/grub
 
-	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory=$EFI_DIR --bootloader-id=GRUB
+	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory=$MNT_BOOT_EFI_DIR --bootloader-id=GRUB
 
 	arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
 fi
