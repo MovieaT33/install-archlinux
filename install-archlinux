@@ -266,7 +266,7 @@ fi
 
 ## Fstab
 
-genfstab -U $MNT >> "${$MNT}/etc/fstab"
+genfstab -U $MNT >> "${MNT}/etc/fstab"
 
 ## Network manager
 
