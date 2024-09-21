@@ -222,7 +222,7 @@ fi
 
 ## Mount the file systems
 
-read -p "Want to mount file system? [Y/n] " answer
+read -p "Want to mount filesystem? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
