@@ -63,8 +63,8 @@ TIMEZONE="UTC"
 ## Mount the filesystems
 
 MNT="/mnt"
-EFI_DIR="boot/efi"
-MNT_BOOT="${MNT}/${EFI_DIR}"
+EFI_DIR="/boot/efi"
+MNT_BOOT="${MNT}${EFI_DIR}"
 
 ## Reflector
 
