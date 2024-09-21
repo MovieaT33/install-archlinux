@@ -30,6 +30,8 @@ OK="${GREEN}Ok${RESET}"
 KEYBOARD_KEYMAP="us"
 KEYBOARD_LAYOUT="us"
 
+KEYBOARD_LANG="en_US.UTF-8"
+
 ## Console fonts
 
 LARGE_FONT="ter-132b"
@@ -252,7 +254,7 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	# pacstrap -K $MNT base linux linux-firmware
 	# pacstrap -K $MNT networkmanager reflector neovim
-	# pacstrap -K $MNT lvm2 grub efibootmgr  # TODO: delete efibootmgr?
+	# pacstrap -K $MNT lvm2 grub efibootmgr  # TODO: delete nvim, efibootmgr?
 	pacstrap -K $MNT base linux linux-firmware \
 			 networkmanager reflector neovim \
 			 lvm2 grub efibootmgr
@@ -284,6 +286,7 @@ arch-chroot $MNT hwclock --systohc
 ## Localization
 
 arch-chroot $MNT nvim /etc/locale.gen # TODO: auto
+arch-chroot $MNT sed -i "/^#en_US.UTF-8 UTF-8/s/^#//" /etc/locale.gen
 arch-chroot $MNT locale-gen
 
 arch-chroot $MNT echo "LANG=en_US.UTF-8" > /etc/locale.conf # TODO: auto
@@ -318,8 +321,8 @@ answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	CRYPT_UUID=$(blkid -s UUID -o value $ENCRYPT_DEVICE)
 
-	arch-chroot $MNT bash -c "sed -i 's/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:${VOLUME_GROUP_NAME} root=\/dev\/mapper\/${VOLUME_GROUP_NAME}-root/' /etc/default/grub"
-	arch-chroot $MNT bash -c "sed -i '/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y' /etc/default/grub"
+	arch-chroot $MNT sed -i "s/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:${VOLUME_GROUP_NAME} root=\/dev\/mapper\/${VOLUME_GROUP_NAME}-root/" /etc/default/grub
+	arch-chroot $MNT sed -i "/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y" /etc/default/grub
 
 	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory="/${EFI_DIR}" --bootloader-id=GRUB
 
@@ -337,3 +340,4 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 fi
 
 # TODO: /tmp to RAM; history -c
+# TODO: check all proccesses
