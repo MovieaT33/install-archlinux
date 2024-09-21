@@ -321,8 +321,12 @@ arch-chroot $MNT mkinitcpio -P
 
 ## Root password
 
-echo "Setting root password..."
-arch-chroot $MNT passwd
+read -p "Want to set root password? [Y/n] " answer
+answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
+	arch-chroot $MNT passwd
+fi
 
 ## GRUB TODO: remove `quiet`
 
