@@ -239,7 +239,7 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
         mount "/dev/mapper/${VOLUME_GROUP_NAME}-root" $MNT
 
 	echo "Mounting efi..."
-	mount --mkdir $EFI_DEVICE $EFI_DIR
+	mount --mkdir $EFI_DEVICE $MNT_BOOT_EFI_DIR
 	
 	echo "Mounting swap..."
 	# swapon "/dev/${VOLUME_GROUP_NAME}/swap"
