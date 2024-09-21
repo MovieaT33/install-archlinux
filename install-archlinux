@@ -266,10 +266,10 @@ fi
 
 ## Fstab
 
-read -p "Want to generate fstab? [y/N] " answer
+read -p "Want to generate fstab? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
-if [[ "$answer" == "y" ]]; then
+if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	genfstab -U $MNT >> "${MNT}/etc/fstab"
 fi
 
