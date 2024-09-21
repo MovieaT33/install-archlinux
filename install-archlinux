@@ -23,25 +23,78 @@ RESET="\033[0m"
 ERROR="${RED}Error${RESET}"
 OK="${GREEN}Ok${RESET}"
 
+# Initialization
+
+## Keyboard
+
+KEYBOARD_KEYMAP="us"
+KEYBOARD_LAYOUT="us"
+
+## Console fonts
+
+LARGE_FONT="ter-132b"
+DEFAULT_FONT=""
+
+## UEFI
+
+EXPECTED_FW_PLATFORM_SIZE=64
+
+## Connection to the internet
+
+HOST="archlinux.org"
+PING_COUNT=4
+
+## Partition the disks
+
+DEVICE="/dev/vda"
+EFI_DEVICE="${DEVICE}1"
+ENCRYPT_DEVICE="${DEVICE}2"
+ENCRYPTED_DEVICE_NAME="crypt"
+VOLUME_GROUP_NAME="vg0"
+
+## Physical volumes
+
+SWAP_SIZE="4G"
+
+## Time
+
+TIMEZONE="UTC"
+
+## Mount the filesystems
+
+MNT="/mnt"
+MNT_BOOT="${MNT}/boot"
+
+## Reflector
+
+REFLECTOR_COUNTRY="United Kingdom"
+REFLECTOR_AGE=6
+REFLECTOR_PROTOCOL="https"
+REFLECTOR_SORT="rate"
+
+## Network configuration
+
+HOSTNAME="archlinux"
+HOSTS_IP4="127.0.0.1       localhost"
+HOSTS_IP6="::1             localhost ip6-localhost ip6-loopback
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters"
+
 # Pre-installation
 
 ## Set the console keyboard layout and font
 
 ### The default console keymap is US. Available layouts can be listed with:
 # localectl list-keymaps
+
 loadkeys us
 
 ### To set the keyboard layout, pass its name to loadkeys(1). For example, to set a United States keyboard layout:
-
-KEYBOARD_LAYOUT="us"
 
 loadkeys $KEYBOARD_LAYOUT
 echo "Current keyboard layout: $KEYBOARD_LAYOUT"
 
 ### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
-
-LARGE_FONT="ter-132b"
-DEFAULT_FONT=""
 
 read -p "Want a larger font? [y/N] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
@@ -60,7 +113,6 @@ echo "Current font: $FONT"
 ### To verify the boot mode, check the UEFI bitness:
 # cat /sys/firmware/efi/fw_platform_size
 
-EXPECTED_FW_PLATFORM_SIZE=64
 fw_platform_size=$(cat /sys/firmware/efi/fw_platform_size)
 
 printf "Verifying the boot mode..."
@@ -80,9 +132,6 @@ fi
 ### The connection may be verified with ping:
 # ping archlinux.org
 
-HOST="archlinux.org"
-PING_COUNT=4
-
 printf "Pinging host "$PING_COUNT" times..."
 
 if ! ping -c $PING_COUNT $HOST > /dev/null; then
@@ -95,25 +144,19 @@ fi
 ## Update the system clock
 
 ### Use timedatectl(1) to ensure the system clock is synchronized
-timedatectl set-timezone UTC
+timedatectl set-timezone $TIMEZONE
 echo "Current time:"
 timedatectl
 
 ## Partition the disks
-
-DEVICE="/dev/vda"
-EFI_DEVICE="${DEVICE}1"
-ENCRYPT_DEVICE="${DEVICE}2"
-ENCRYPTED_DEVICE_NAME="crypt"
-VOLUME_GROUP_NAME="vg0"
 
 read -p "Want to format device? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	# cfdisk $DEVICE
-	echo -e "g\nn\n1\n\n+1G\nt\n1\nw" | fdisk $DEVICE
-	echo -e "n\n2\n\n\n\nt\n2\n44\nw" | fdisk $DEVICE
+	echo -e "g\nn\n1\n\n+1G\nt\n1\nw" | fdisk $DEVICE # EFI system partition
+	echo -e "n\n2\n\n\n\nt\n2\n44\nw" | fdisk $DEVICE # Root partition
 fi
 
 ## Encrypt device
@@ -133,7 +176,7 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	cryptsetup luksOpen $ENCRYPT_DEVICE $ENCRYPTED_DEVICE_NAME
 fi
 
-### Use the device as phisical volume
+### Use the device as physical volume
 
 read -p "Want to create volumes? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
@@ -148,8 +191,6 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
 
 ## Create the logical volumes
-
-	SWAP_SIZE="4G"
 
 	echo "Creating the logical volumes..."
 
@@ -180,8 +221,6 @@ fi
 
 ## Mount the file systems
 
-MNT="/mnt"
-
 read -p "Want to mount file system? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
@@ -189,7 +228,7 @@ if [[ "$answer" == "" || "$answer" == "y" ]]; then
 	echo "Mounting file systems..."
 
 	echo "Mounting efi..."
-	mount --mkdir $EFI_DEVICE /mnt/boot
+	mount --mkdir $EFI_DEVICE $MNT_BOOT
 
 	echo "Mounting root..."
 	mount "/dev/${VOLUME_GROUP_NAME}/root" $MNT
@@ -206,9 +245,12 @@ read -p "Want to install essential packages -> ${MNT}? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	pacstrap -K $MNT base linux linux-firmware
-	pacstrap -K $MNT networkmanager reflector neovim
-	pacstrap -K $MNT lvm2
+	# pacstrap -K $MNT base linux linux-firmware
+	# pacstrap -K $MNT networkmanager reflector neovim
+	# pacstrap -K $MNT lvm2
+	pacstrap -K $MNT base linux linux-firmware \
+			 networkmanager reflector neovim \
+			 lvm2
 fi
 
 # Configure the system
@@ -224,38 +266,35 @@ arch-chroot $MNT systemctl start NetworkManager
 
 ## Select the mirrors
 
-arch-chroot $MNT reflector -c "United Kingdom" --age 6 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+arch-chroot $MNT reflector -c $REFLECTOR_COUNTRY --age $REFLECTOR_AGE --protocol $REFLECTOR_PROTOCOL --sort $REFLECTOR_SORT --save /etc/pacman.d/mirrorlist
 
 arch-chroot $MNT systemctl enable reflector.timer
 arch-chroot $MNT systemctl start reflector.timer
 
 ## Time
 
-arch-chroot $MNT ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+arch-chroot $MNT ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
 arch-chroot $MNT hwclock --systohc
 
 ## Localization
 
-arch-chroot $MNT nvim /etc/locale.gen
+arch-chroot $MNT nvim /etc/locale.gen # TODO: auto
 arch-chroot $MNT locale-gen
 
-arch-chroot $MNT echo "LANG=en_US.UTF-8" > /etc/locale.conf
+arch-chroot $MNT echo "LANG=en_US.UTF-8" > /etc/locale.conf # TODO: auto
 
-arch-chroot $MNT echo "KEYMAP=us" > /etc/vconsole.conf
+arch-chroot $MNT echo "KEYMAP=us" > /etc/vconsole.conf # TODO: auto
 
 ## Network configuration
 
-HOSTNAME="archlinux"
 arch-chroot $MNT echo $HOSTNAME > /etc/hostname
 
-arch-chroot $MNT echo "127.0.0.1       localhost" >> /etc/hosts
-arch-chroot $MNT echo "::1             localhost ip6-localhost ip6-loopback
-ff02::1         ip6-allnodes
-ff02::2         ip6-allrouters" >> /etc/hosts
+arch-chroot $MNT echo $HOSTS_IP4 >> /etc/hosts
+arch-chroot $MNT echo $HOSTS_IP6 >> /etc/hosts
 
 ## Update mkinitcpio
 
-arch-chroot $MNT nvim /etc/mkinitcpio.conf
+arch-chroot $MNT nvim /etc/mkinitcpio.conf # TODO: auto
 
 ## Initramfs
 
