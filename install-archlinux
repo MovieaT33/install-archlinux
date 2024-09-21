@@ -306,7 +306,7 @@ arch-chroot $MNT mkinitcpio -P
 echo "Set root password"
 arch-chroot $MNT passwd
 
-## GRUB
+## GRUB TODO: 0 quiet
 
 read -p "Want to install GRUB? [Y/n] " answer
 answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
