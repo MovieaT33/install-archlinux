@@ -96,6 +96,28 @@ w
 EOF
 }
 
+format_luks_disk() {
+    local disk="$1"
+    cryptsetup luksFormat "$disk"
+}
+
+create_luks_disk_mapping() {
+    local disk="$1"
+    local mapping_name="$2"
+    cryptsetup open "$disk" "$mapping_name"
+}
+
+create_physical_volume() {
+    local mapping_name="$1"
+    pvcreate "/dev/mapper/${mapping_name}"
+}
+
+create_volume_group() {
+    local volume_name="$1"
+    local mapping_name="$2"
+    vgcreate "$volume_name" "/dev/mapper/${mapping_name}"
+}
+
 set_console_keyboard_layout "us"
 set_default_font # set_large_font
 verify_boot_mode
@@ -103,4 +125,12 @@ verify_internet_connection
 verify_system_clock
 
 DISK="/dev/vda"
+LINUX_LVM="/dev/vda2"
+MAPPING_NAME="crypt"
+VOLUME_NAME="vg0"
+
 partition_disk
+format_luks_disk "$LINUX_LVM"
+create_luks_disk_mapping "$LINUX_LVM" "$MAPPING_NAME"
+create_physical_volume "$MAPPING_NAME"
+create_volume_group "$VOLUME_NAME" "$MAPPING_NAME"
