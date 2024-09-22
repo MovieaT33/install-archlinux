@@ -1,13 +1,17 @@
 #!/bin/bash
 
+EXPECTED_UEFI_BITNESS=64
+
 loadkeys us
 
 # setfont ter-132b
 
-if [[ $(cat /sys/firmware/efi/fw_platform_size) -ne 64 ]]; then
+if [[ $(cat /sys/firmware/efi/fw_platform_size) -ne $EXPECTED_UEFI_BITNESS ]]; then
+	echo "Unsupported UEFI mode"
 	exit 1
 fi
 
-if ! ping -c 1 archlinux > /dev/null; then
+if ! ping -c 1 archlinux.com > /dev/null; then
+	echo "No internet connection"
 	exit 1
 fi
