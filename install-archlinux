@@ -118,11 +118,11 @@ arch-chroot $MNT systemctl enable reflector.timer
 arch-chroot $MNT ln -sf /usr/share/zoneinfo/$REGION/$CITY /etc/localtime
 arch-chroot $MNT hwclock --systohc
 
-arch-chroot $MNT sed -i '/^# *en_US\.UTF-8 UTF-8/s/^# *//' /etc/locale.gen
+arch-chroot $MNT sed -i '/^# *en_US\.UTF-8 UTF-8/s/^# *//'   /etc/locale.gen
 arch-chroot $MNT locale-gen
-arch-chroot $MNT LANG=en_US.UTF-8 >                        /etc/locale.conf
-arch-chroot $MNT KEYMAP=$CONSOLE_KEYMAP                    /etc/vconsole.conf
-arch-chroot $MNT $HOSTNAME >                               /etc/hostname
+arch-chroot $MNT "LANG=en_US.UTF-8" >                        /etc/locale.conf
+arch-chroot $MNT "KEYMAP=$CONSOLE_KEYMAP"                    /etc/vconsole.conf
+arch-chroot $MNT "$HOSTNAME" >                               /etc/hostname
 arch-chroot $MNT "
 127.0.0.1       localhost
 ::1             localhost ip6-localhost ip6-loopback
