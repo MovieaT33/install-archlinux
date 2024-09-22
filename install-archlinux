@@ -50,7 +50,7 @@ get_uefi_mode() {
 verify_boot_mode() {
 	local EXPECTED_UEFI_BITNESS=64
 
-	local uefi_mode=${get_uefi_mode}
+	local uefi_mode=get_uefi_mode
 
 	if [[ "$uefi_mode" -ne "$EXPECTED_UEFI_BITNESS" ]]; then
         	echo "Unsupported UEFI mode: $uefi_mode-bit. Expected: $EXPECTED_UEFI_BITNESS-bit."
