@@ -93,7 +93,8 @@ swapon /dev/mapper/$LUKS_VOLUME-swap
 
 pacstrap -K $MNT base linux linux-firmware \
                  networkmanager reflector \
-                 grub efibootmgr
+                 grub efibootmgr \
+                 sudo
 
 genfstab -U $MNT >> $MNT/etc/fstab
 
