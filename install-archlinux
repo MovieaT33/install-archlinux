@@ -260,7 +260,7 @@ swapon "/dev/mapper/${VOLUME_NAME}-swap"
 echo "Filesystems mounted."
 
 echo "Installing base system..."
-pacstrap -K "$MNT" base linux linux-firmware networkmanager reflector lvm2 grub efibootmgr sudo
+pacstrap -K "$MNT" base linux linux-firmware networkmanager reflector lvm2 grub efibootmgr os-prober sudo
 echo "Base system installed."
 
 echo "Generating fstab..."
