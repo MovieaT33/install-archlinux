@@ -35,7 +35,7 @@ set_large_font() {
 }
 
 get_uefi_mode() {
-	return ${cat /sys/firmware/efi/fw_platform_size}
+	echo ${cat /sys/firmware/efi/fw_platform_size}
 }
 
 verify_boot_mode() {
