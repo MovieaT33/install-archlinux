@@ -309,3 +309,5 @@ else
     echo "GRUB installation failed. System will not reboot." >&2
     exit 1
 fi
+
+# TODO: add history -c, tmp to RAM
