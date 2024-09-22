@@ -1,4 +1,4 @@
-1#!/bin/bash
+#!/bin/bash
 
 # Installation script with LUKS encryption using LVM for Arch Linux with UEFI 64-bit.
 # Copyright (C) 2024  MovieaT33
@@ -65,13 +65,17 @@ verify_internet_connection() {
     if ! ping -c 1 archlinux.com > /dev/null; then
         echo "No internet connection"
         exit 1
+    else
+        echo "Internet connection to ${HOST} is available."
     fi
 }
 
 verify_system_clock() {
     if ! timedatectl | grep "Time zone: UTC" > /dev/null; then
-        echo "Unsynced system clock"
+        echo "System clock is not set to UTC."
         exit 1
+    else
+        echo "System clock is set to UTC."
     fi
 }
 
@@ -94,55 +98,78 @@ Linux LVM
 p
 w
 EOF
+    echo "Disk partitioned successfully."
 }
 
-format_luks_disk() {
+encrypt_luks_disk() {
     local disk="$1"
+    echo "Encrypting disk $disk with LUKS..."
     cryptsetup luksFormat "$disk"
+    echo "Disk $disk encrypted with LUKS."
 }
 
 create_luks_disk_mapping() {
     local disk="$1"
     local mapping_name="$2"
+    echo "Opening encrypted disk $disk as $mapping_name..."
     cryptsetup open "$disk" "$mapping_name"
+    echo "Disk opened as $mapping_name."
 }
 
 create_physical_volume() {
     local mapping_name="$1"
+    echo "Creating physical volume on /dev/mapper/${mapping_name}..."
     pvcreate "/dev/mapper/${mapping_name}"
+    echo "Physical volume created."
 }
 
 create_volume_group() {
     local volume_name="$1"
     local mapping_name="$2"
+    echo "Creating volume group $volume_name on /dev/mapper/${mapping_name}..."
     vgcreate "$volume_name" "/dev/mapper/${mapping_name}"
+    echo "Volume group $volume_name created."
 }
 
 create_logical_volumes() {
     local volume_name="$1"
 
+    echo "Creating logical volume 'swap' in volume group $volume_name..."
     lvcreate -L 4G "$volume_name" -n swap
+    echo "Logical volume 'swap' created."
+
+    echo "Creating logical volume 'root' in volume group $volume_name..."
     lvcreate -l 100%FREE "$volume_name" -n root
+    echo "Logical volume 'root' created."
 }
 
 make_efi_system() {
     local efi_system="$1"
+    echo "Formatting EFI System Partition ($efi_system) as FAT32..."
     mkfs.fat -F32 "$efi_system"
+    echo "EFI System Partition formatted."
 }
 
 make_linux_filesystem() {
     local linux_filesystem="$1"
+    echo "Formatting root partition ($linux_filesystem) as ext4..."
     mkfs.ext4 "$linux_filesystem"
+    echo "Root partition formatted."
 }
+
 
 make_swap() {
     local swap="$1"
+    echo "Creating swap on $swap..."
     mkswap "$swap"
+    echo "Swap created."
 }
 
 generate_fstab() {
     local mnt="$1"
+    echo "Generating fstab..."
     genfstab -U "$mnt" >> "${mnt}/etc/fstab"
+    echo "fstab generated."
 }
 
 set_time_zone() {
@@ -150,16 +177,63 @@ set_time_zone() {
     local region="$2"
     local city="$3"
 
+    echo "Setting time zone to $region/$city..."
     arch-chroot "$mnt" ln -sf "/usr/share/zoneinfo/${region}/${city}" "/etc/localtime"
     arch-chroot "$mnt" hwclock --systohc
+    echo "Time zone set."
 }
 
+install_grub() {
+    local mnt="$1"
+
+    echo "Installing GRUB..."
+    arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory="/boot" --bootloader-id=GRUB --recheck
+    echo "GRUB installed."
+
+    echo "Generating GRUB configuration file..."
+    arch-chroot "$MNT" grub-mkconfig -o "/boot/grub/grub.cfg"
+    echo "GRUB configuration file generated."
+
+    echo "Verifying GRUB installation..."
+    if [[ -f "${MNT}/boot/grub/grub.cfg" ]]; then
+        echo "Verification successful: grub.cfg exists."
+    else
+        echo "Verification failed: grub.cfg not found." >&2
+        exit 1
+    fi
+}
+
+add_user() {
+    read -p "Enter username: " username
+
+    if id "$username" &>/dev/null; then
+        echo "User '$username' already exists."
+        exit 1
+    fi
+
+    echo "Creating user '$username'..."
+    useradd -mG wheel -s "/bin/bash" "$username"
+    echo "User '$username' created."
+
+    echo "Set password for user '$username':"
+    passwd "$username"
+
+    # Configure sudo for wheel group
+    echo "Configuring sudo for wheel group..."
+    sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /mnt/etc/sudoers
+    echo "Sudo configured for wheel group."
+
+    echo "User '$username' successfully added and granted sudo privileges."
+}
+
+# Execute installation functions
 set_console_keyboard_layout "us"
-set_default_font # set_large_font
+set_default_font  # Use set_large_font if a large font is desired
 verify_boot_mode
 verify_internet_connection
 verify_system_clock
 
+# Define variables
 DISK="/dev/vda"
 EFI_SYSTEM="/dev/vda1"
 LINUX_LVM="/dev/vda2"
@@ -167,6 +241,7 @@ MAPPING_NAME="crypt"
 VOLUME_NAME="vg0"
 MNT="/mnt"
 
+# Disk partitioning and system installation
 partition_disk
 format_luks_disk "$LINUX_LVM"
 create_luks_disk_mapping "$LINUX_LVM" "$MAPPING_NAME"
@@ -178,20 +253,61 @@ make_efi_system "$EFI_SYSTEM"
 make_linux_filesystem "/dev/mapper/${VOLUME_NAME}-root"
 make_swap "/dev/mapper/${VOLUME_NAME}-swap"
 
+echo "Mounting filesystems..."
 mount "/dev/mapper/${VOLUME_NAME}-root" "$MNT"
+mkdir -p "${MNT}/boot/efi"
 mount --mkdir "$EFI_SYSTEM" "${MNT}/boot/efi"
 swapon "/dev/mapper/${VOLUME_NAME}-swap"
+echo "Filesystems mounted."
 
-pacstrap -K "$MNT" base linux linux-firmware \
-                   networkmanager reflector \
-                   lvm2 grub efibootmgr
+echo "Installing base system..."
+pacstrap -K "$MNT" base linux linux-firmware networkmanager reflector lvm2 grub efibootmgr sudo
+echo "Base system installed."
 
-REGION=Europe
-CITY=London
-
+echo "Generating fstab..."
 generate_fstab "$MNT"
+
+echo "Setting time zone..."
+REGION="Europe"
+CITY="London"
 set_time_zone "$MNT" "$REGION" "$CITY"
 
+echo "Creating initramfs..."
 arch-chroot "$MNT" mkinitcpio -P
-arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --recheck
-arch-chroot "$MNT" grub-mkconfig -o /boot/grub/grub.cfg
+echo "initramfs created."
+
+echo "Installing GRUB..."
+install_grub
+
+echo "Enabling NetworkManager..."
+arch-chroot "$MNT" systemctl enable NetworkManager
+echo "NetworkManager enabled."
+
+COUNTRY="United Kingdom"
+REFLECTOR_LATEST=5
+
+echo "Installing Reflector and updating mirrorlist..."
+arch-chroot "$MNT" pacman -S --noconfirm reflector
+arch-chroot "$MNT" reflector --country "$COUNTRY" --latest $REFLECTOR_LATEST --sort rate --save /etc/pacman.d/mirrorlist
+echo "Mirrorlist updated with Reflector."
+
+echo "Setting root password:"
+arch-chroot "$MNT" passwd
+echo "Root password set."
+
+echo "Adding new user:"
+arch-chroot "$MNT" bash -c "$(declare -f add_user); add_user"
+echo "User added."
+
+echo "Finalizing installation and preparing for reboot..."
+umount -R "$MNT"
+swapoff -a
+
+# Verify GRUB installation before rebooting
+if [[ -f "/boot/grub/grub.cfg" ]]; then
+    echo "GRUB installed successfully. Rebooting the system..."
+    reboot
+else
+    echo "GRUB installation failed. System will not reboot." >&2
+    exit 1
+fi
