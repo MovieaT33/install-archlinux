@@ -69,8 +69,8 @@ verify_internet_connection() {
 }
 
 verify_system_clock() {
-    if ! timedatectl | grep "Time zone: UTC" > /dev/null; then
-        echo ""
+    if ! timedatectl | grep "Time zone: UTC-test" > /dev/null; then
+        echo "Unsynced system clock"
         exit 1
     fi
 }
