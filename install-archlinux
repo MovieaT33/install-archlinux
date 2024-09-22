@@ -52,7 +52,7 @@ verify_boot_mode() {
 
 	local uefi_mode=${get_uefi_mode}
 	if [[ $uefi_mode -ne $EXPECTED_UEFI_BITNESS ]]; then
-		echo "Unsupported UEFI mode"
+		echo "Unsupported UEFI mode $uefi_mode"
 		exit 1
 	fi
 }
