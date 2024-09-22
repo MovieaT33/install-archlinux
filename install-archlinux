@@ -19,4 +19,7 @@ fi
 
 "
 g
+n 1
+
++1G
 " | fdisk $DEVICE
