@@ -68,7 +68,15 @@ verify_internet_connection() {
     fi
 }
 
+verify_system_clock() {
+    if ! timedatectl | grep "Time zone: UTC" > /dev/null; then
+        echo ""
+        exit 1
+    fi
+}
+
 set_console_keyboard_layout "us"
 set_large_font
 verify_boot_mode
 verify_internet_connection
+verify_system_clock
