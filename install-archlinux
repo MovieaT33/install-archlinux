@@ -1,113 +1,13 @@
 #!/bin/bash
 
-# Встановлення часу системи
-timedatectl set-ntp true
+loadkeys us
 
-# Створення розділів
-fdisk /dev/vda <<EOF
-g # GPT таблиця
-n 1 # Розділ EFI
-  # First sector (default)
-+512M # 512MB для EFI
-t 1 # Тип розділу
-1 # EFI
-n 2 # Розділ LVM
-  # First sector (default)
-  # Last sector (100%FREE)
-t 2 # Тип розділу
-31 # Linux LVM
-w # Запис змін
-EOF
+# setfont ter-132b
 
-# Форматування розділів
-mkfs.fat -F32 /dev/vda1
+if [[ $(cat /sys/firmware/efi/fw_platform_size) -ne 64 ]]; then
+	exit 1
+fi
 
-# Шифрування розділу LVM
-cryptsetup luksFormat /dev/vda2
-cryptsetup open /dev/vda2 crypt
-
-# Створення LVM
-pvcreate /dev/mapper/crypt
-vgcreate vg0 /dev/mapper/crypt
-lvcreate -L 4G vg0 -n swap
-lvcreate -l 100%FREE vg0 -n root
-
-# Форматування розділів
-mkfs.ext4 /dev/vg0/root
-mkswap /dev/vg0/swap
-
-# Монтування файлової системи
-mount /dev/vg0/root /mnt
-mkdir /mnt/boot
-mount /dev/vda1 /mnt/boot
-swapon /dev/vg0/swap
-
-# Встановлення базової системи
-pacstrap /mnt base linux linux-firmware lvm2
-
-# Налаштування системи
-genfstab -U /mnt >> /mnt/etc/fstab
-
-# Chroot у нову систему
-arch-chroot /mnt /bin/bash <<EOF
-
-# Налаштування часової зони
-ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
-hwclock --systohc
-
-# Налаштування мовних параметрів
-echo "en_GB.UTF-8 UTF-8" >> /etc/locale.gen
-locale-gen
-echo "LANG=en_GB.UTF-8" > /etc/locale.conf
-
-# Налаштування клавіатури
-echo "KEYMAP=us" > /etc/vconsole.conf
-
-# Налаштування hostname
-echo "archlinux" > /etc/hostname
-
-# Налаштування hosts
-cat >> /etc/hosts <<END
-127.0.0.1   localhost
-::1         localhost
-127.0.1.1   archlinux.localdomain archlinux
-END
-
-# Налаштування initramfs
-sed -i 's/^HOOKS=(base udev autodetect modconf block filesystems keyboard fsck)/HOOKS=(base udev autodetect modconf block encrypt lvm2 filesystems keyboard fsck)/' /etc/mkinitcpio.conf
-mkinitcpio -P
-
-# Встановлення та налаштування bootctl
-bootctl install
-
-# Налаштування завантажувача
-cat > /boot/loader/entries/arch.conf <<END
-title   Arch Linux
-linux   /vmlinuz-linux
-initrd  /initramfs-linux.img
-options cryptdevice=/dev/vda2:crypt root=/dev/vg0/root quiet rw
-END
-
-# Встановлення GRUB
-pacman -S --noconfirm grub efibootmgr
-grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
-grub-mkconfig -o /boot/grub/grub.cfg
-
-# Встановлення мережевого менеджера
-pacman -S --noconfirm networkmanager
-systemctl enable NetworkManager
-
-# Встановлення Reflector для вибору дзеркал
-pacman -S --noconfirm reflector
-reflector --country 'United Kingdom' --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
-
-# Встановлення пароля root
-echo "Set root password:"
-passwd
-
-EOF
-
-# Завершення
-umount -R /mnt
-swapoff -a
-echo "Встановлення завершено. Перезавантажте систему."
+if ! ping -c 1 archlinux > /dev/null; then
+	exit 1
+fi
