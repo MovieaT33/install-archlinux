@@ -1,369 +1,113 @@
 #!/bin/bash
 
-# Installation script with LUKS encryption using LVM for Arch Linux with UEFI 64-bit.
-# Copyright (C) 2024  MovieaT33
+# Встановлення часу системи
+timedatectl set-ntp true
+
+# Створення розділів
+fdisk /dev/vda <<EOF
+g # GPT таблиця
+n 1 # Розділ EFI
+  # First sector (default)
++512M # 512MB для EFI
+t 1 # Тип розділу
+1 # EFI
+n 2 # Розділ LVM
+  # First sector (default)
+  # Last sector (100%FREE)
+t 2 # Тип розділу
+31 # Linux LVM
+w # Запис змін
+EOF
+
+# Форматування розділів
+mkfs.fat -F32 /dev/vda1
+
+# Шифрування розділу LVM
+cryptsetup luksFormat /dev/vda2
+cryptsetup open /dev/vda2 crypt
+
+# Створення LVM
+pvcreate /dev/mapper/crypt
+vgcreate vg0 /dev/mapper/crypt
+lvcreate -L 4G vg0 -n swap
+lvcreate -l 100%FREE vg0 -n root
+
+# Форматування розділів
+mkfs.ext4 /dev/vg0/root
+mkswap /dev/vg0/swap
+
+# Монтування файлової системи
+mount /dev/vg0/root /mnt
+mkdir /mnt/boot
+mount /dev/vda1 /mnt/boot
+swapon /dev/vg0/swap
+
+# Встановлення базової системи
+pacstrap /mnt base linux linux-firmware lvm2
+
+# Налаштування системи
+genfstab -U /mnt >> /mnt/etc/fstab
+
+# Chroot у нову систему
+arch-chroot /mnt /bin/bash <<EOF
+
+# Налаштування часової зони
+ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
+hwclock --systohc
+
+# Налаштування мовних параметрів
+echo "en_GB.UTF-8 UTF-8" >> /etc/locale.gen
+locale-gen
+echo "LANG=en_GB.UTF-8" > /etc/locale.conf
+
+# Налаштування клавіатури
+echo "KEYMAP=us" > /etc/vconsole.conf
+
+# Налаштування hostname
+echo "archlinux" > /etc/hostname
+
+# Налаштування hosts
+cat >> /etc/hosts <<END
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   archlinux.localdomain archlinux
+END
+
+# Налаштування initramfs
+sed -i 's/^HOOKS=(base udev autodetect modconf block filesystems keyboard fsck)/HOOKS=(base udev autodetect modconf block encrypt lvm2 filesystems keyboard fsck)/' /etc/mkinitcpio.conf
+mkinitcpio -P
+
+# Встановлення та налаштування bootctl
+bootctl install
+
+# Налаштування завантажувача
+cat > /boot/loader/entries/arch.conf <<END
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options cryptdevice=/dev/vda2:crypt root=/dev/vg0/root quiet rw
+END
+
+# Встановлення GRUB
+pacman -S --noconfirm grub efibootmgr
+grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# Встановлення мережевого менеджера
+pacman -S --noconfirm networkmanager
+systemctl enable NetworkManager
+
+# Встановлення Reflector для вибору дзеркал
+pacman -S --noconfirm reflector
+reflector --country 'United Kingdom' --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+
+# Встановлення пароля root
+echo "Set root password:"
+passwd
 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+EOF
 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-RED="\033[31m"
-GREEN="\033[32m"
-RESET="\033[0m"
-
-ERROR="${RED}Error${RESET}"
-OK="${GREEN}Ok${RESET}"
-
-# Initialization
-
-## Keyboard
-
-KEYBOARD_KEYMAP="us"
-KEYBOARD_LAYOUT="us"
-
-KEYBOARD_LANG_LOCALE="en_US.UTF-8"
-KEYBOARD_LANG_CHARSET="UTF-8"
-KEYBOARD_LANG_LOCALE_CHARSET="${KEYBOARD_LANG_LOCALE} ${KEYBOARD_LANG_CHARSET}"
-
-## Console fonts
-
-LARGE_FONT="ter-132b"
-DEFAULT_FONT=""
-
-## UEFI
-
-EXPECTED_FW_PLATFORM_SIZE=64
-
-## Connection to the internet
-
-HOST="archlinux.org"
-PING_COUNT=1
-
-## Partition the disks
-
-DEVICE="/dev/vda"
-EFI_DEVICE="${DEVICE}1"
-ENCRYPT_DEVICE="${DEVICE}2"
-ENCRYPTED_DEVICE_NAME="crypt"
-VOLUME_GROUP_NAME="vg0"
-
-## Physical volumes
-
-SWAP_SIZE="4G"
-
-## Time
-
-TIMEZONE="UTC"
-
-## Mount the filesystems
-
-MNT="/mnt"
-BOOT_DIR="/boot"
-EFI_DIR="${BOOT_DIR}/efi"
-MNT_BOOT_EFI_DIR="${MNT}${EFI_DIR}"
-
-## Reflector
-
-REFLECTOR_COUNTRY="United Kingdom"
-REFLECTOR_AGE=6
-REFLECTOR_PROTOCOL="https"
-REFLECTOR_SORT="rate"
-
-## Network configuration
-
-HOSTNAME="archlinux"
-HOSTS_IP4="127.0.0.1       localhost"
-HOSTS_IP6="::1             localhost ip6-localhost ip6-loopback
-ff02::1         ip6-allnodes
-ff02::2         ip6-allrouters"
-
-# Pre-installation
-
-## Set the console keyboard layout and font
-
-### The default console keymap is US. Available layouts can be listed with:
-# localectl list-keymaps
-
-### To set the keyboard layout, pass its name to loadkeys(1). For example, to set a United States keyboard layout:
-
-loadkeys $KEYBOARD_LAYOUT
-echo "Current keyboard layout: $KEYBOARD_LAYOUT"
-
-### Console fonts are located in /usr/share/kbd/consolefonts/ and can likewise be set with setfont(8) omitting the path and file extension. For example, to use one of the largest fonts suitable for HiDPI screens, run:
-
-read -p "Want a larger font? [y/N] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "y" ]]; then
-	FONT=$LARGE_FONT
-else
-	FONT=$DEFAULT_FONT
-fi
-
-setfont $FONT
-echo "Current font: $FONT"
-
-## Verify the boot mode
-
-### To verify the boot mode, check the UEFI bitness:
-# cat /sys/firmware/efi/fw_platform_size
-
-fw_platform_size=$(cat /sys/firmware/efi/fw_platform_size)
-
-printf "Verifying the boot mode..."
-
-if [[ $fw_platform_size -ne $EXPECTED_FW_PLATFORM_SIZE ]]; then
-	echo -e " ${ERROR}: The system must be UEFI ${EXPECTED_FW_PLATFORM_SIZE}-bit, not ${fw_platform_size}-bit"
-	exit 1
-else
-	echo -e " ${OK}"
-fi
-
-## Connect to the internet
-
-### Ensure your network interface is listed and enabled, for example with ip-link(8):
-# ip link
-
-### The connection may be verified with ping:
-# ping archlinux.org
-
-printf "Pinging host "$PING_COUNT" times..."
-
-if ! ping -c $PING_COUNT $HOST > /dev/null; then
-	echo -e " ${ERROR}: Unable to reach ${HOST}"
-	exit 1
-else
-	echo -e " ${OK}"
-fi
-
-## Update the system clock
-
-### Use timedatectl(1) to ensure the system clock is synchronized
-
-timedatectl set-timezone $TIMEZONE
-echo "Current time:"
-timedatectl
-
-## Partition the disks
-
-read -p "Want to format device? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	# cfdisk $DEVICE
-	echo -e "g\n"                     | fdisk $DEVICE
-	echo -e "n\n1\n\n+1G\nt\n1\nw"    | fdisk $DEVICE # EFI system partition
-	echo -e "n\n2\n\n\n\nt\n2\n44\nw" | fdisk $DEVICE # Linux LVM partition
-fi
-
-## Encrypt device
-
-### Create luks partition
-
-read -p "Want to encrypt device? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	echo "Encrypting ${ENCRYPT_DEVICE} device..."
-	cryptsetup luksFormat $ENCRYPT_DEVICE
-
-### Open the encrypted device
-
-	echo "Opening the $ENCRYPT_DEVICE device as $ENCRYPTED_DEVICE_NAME..."
-	cryptsetup luksOpen $ENCRYPT_DEVICE $ENCRYPTED_DEVICE_NAME
-fi
-
-### Use the device as physical volume
-
-read -p "Want to create volumes? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	printf "Using the device as physical volume..."
-	pvcreate "/dev/mapper/${ENCRYPTED_DEVICE_NAME}"
-
-### Create a volume group
-
-	echo "Creating a $VOLUME_GROUP_NAME volume group..."
-	vgcreate $VOLUME_GROUP_NAME /dev/mapper/$ENCRYPTED_DEVICE_NAME
-
-## Create the logical volumes
-
-	echo "Creating the logical volumes..."
-
-	printf "Creating the swap logical volume with $SWAP_SIZE size..."
-	lvcreate -n swap -L $SWAP_SIZE $VOLUME_GROUP_NAME
-
-	printf "Creating the root logical volume..."
-	lvcreate -n root -l 100%FREE $VOLUME_GROUP_NAME
-fi
-
-## Format the partitions
-
-read -p "Want to format sections? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	echo "Formatting the partitions..."
-
-	echo "Formatting efi..."
-	mkfs.fat -F32 $EFI_DEVICE
-
-	echo "Formatting swap..."
-	# mkswap "/dev/${VOLUME_GROUP_NAME}/swap"
-        mkswap "/dev/mapper/${VOLUME_GROUP_NAME}-swap"
-
-	echo "Formatting root..."
-	# mkfs.ext4 "/dev/${VOLUME_GROUP_NAME}/root"
-        mkfs.ext4 "/dev/mapper/${VOLUME_GROUP_NAME}-root"
-fi
-
-## Mount the file systems
-
-read -p "Want to mount filesystem? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	echo "Mounting file systems..."
-
-	echo "Mounting root..." # First root partition
-	# mount "/dev/${VOLUME_GROUP_NAME}/root" $MNT
-        mount "/dev/mapper/${VOLUME_GROUP_NAME}-root" $MNT
-
-	echo "Mounting efi..."
-	mount --mkdir $EFI_DEVICE $MNT_BOOT_EFI_DIR
-	
-	echo "Mounting swap..."
-	# swapon "/dev/${VOLUME_GROUP_NAME}/swap"
-        swapon "/dev/mapper/${VOLUME_GROUP_NAME}-swap"
-fi
-
-# Installation
-
-## Install essential packages
-
-read -p "Want to install essential packages -> ${MNT}? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	# pacstrap -K $MNT base linux linux-firmware
-	# pacstrap -K $MNT networkmanager reflector neovim
-	# pacstrap -K $MNT lvm2 grub efibootmgr  # TODO: delete nvim, efibootmgr?
-	pacstrap -K $MNT base linux linux-firmware \
-			 networkmanager reflector neovim \
-			 lvm2 grub efibootmgr
-fi
-
-# Configure the system
-
-## Fstab
-
-read -p "Want to generate fstab? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	genfstab -U $MNT >> "${MNT}/etc/fstab"
-fi
-
-## Network manager
-
-echo "Setting NetworkManager..."
-arch-chroot $MNT systemctl enable NetworkManager
-arch-chroot $MNT systemctl start NetworkManager
-
-## Select the mirrors
-
-echo "Setting reflector..."
-arch-chroot $MNT reflector -c "$REFLECTOR_COUNTRY" --age $REFLECTOR_AGE --protocol "$REFLECTOR_PROTOCOL" --sort $REFLECTOR_SORT --save /etc/pacman.d/mirrorlist
-
-arch-chroot $MNT systemctl enable reflector.timer
-arch-chroot $MNT systemctl start reflector.timer
-
-## Time
-
-echo "Setting time..."
-arch-chroot $MNT ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
-arch-chroot $MNT hwclock --systohc
-
-## Localization
-
-echo "Setting localization..."
-arch-chroot $MNT sed -i "/^#${KEYBOARD_LANG_LOCALE_CHARSET}/s/^#//" /etc/locale.gen
-arch-chroot $MNT locale-gen
-
-arch-chroot $MNT echo "LANG=${KEYBOARD_LANG_LOCALE}" > /etc/locale.conf
-arch-chroot $MNT echo "KEYMAP=${KEYBOARD_KEYMAP}" > /etc/vconsole.conf
-
-## Network configuration
-
-echo "Setting network configuration..."
-arch-chroot $MNT echo $HOSTNAME > /etc/hostname
-
-arch-chroot $MNT echo "
-${HOSTS_IP4}" >> /etc/hosts
-arch-chroot $MNT echo $HOSTS_IP6 >> /etc/hosts
-
-## Update mkinitcpio
-
-read -p "Want to update mkinitcpio configuration? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	arch-chroot $MNT nvim /etc/mkinitcpio.conf # TODO: auto
-fi
-
-## Initramfs
-
-read -p "Want to update mkinitcpio? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	arch-chroot $MNT mkinitcpio -P
-fi
-
-## Root password
-
-read -p "Want to set root password? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	arch-chroot $MNT passwd
-fi
-
-## GRUB TODO: remove `quiet`
-
-read -p "Want to install GRUB? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	CRYPT_UUID=$(blkid -s UUID -o value $ENCRYPT_DEVICE)
-
-	arch-chroot $MNT sed -i "s/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=${CRYPT_UUID}:${VOLUME_GROUP_NAME} root=\/dev\/mapper\/${VOLUME_GROUP_NAME}-root/" /etc/default/grub
-	arch-chroot $MNT sed -i "/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y" /etc/default/grub
-
-	arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory=$EFI_DIR --bootloader-id=GRUB
-
-	arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
-fi
-
-echo -e "The installation was ${GREEN}successful${RESET}!"
-echo -e "You can ${RED}uninstall${RESET} installation script by \`make uninstall\` command"
-
-read -p "Reboot? [Y/n] " answer
-answer=$(echo "$answer" | tr '[:upper:]' '[:lower:]')
-
-if [[ "$answer" == "" || "$answer" == "y" ]]; then
-	reboot
-fi
-
-# TODO: /tmp to RAM; history -c
-# TODO: check all proccesses
+# Завершення
+umount -R /mnt
+swapoff -a
+echo "Встановлення завершено. Перезавантажте систему."
