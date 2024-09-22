@@ -17,9 +17,9 @@ if ! ping -c 1 archlinux.com > /dev/null; then
 	exit 1
 fi
 
-"
+fdisk $DEVICE <<EOF
 g
 n 1
 
 +1G
-" | fdisk $DEVICE
+EOF
