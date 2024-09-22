@@ -75,7 +75,7 @@ mount  /dev/mapper/$LUKS_VOLUME-root $MNT
 mount  --mkdir     $EFI_SYSTEM       $BOOT
 swapon /dev/mapper/$LUKS_VOLUME-swap
 
-pacstrap $MNT /mnt base linux linux-firmware  networkmanager reflector grub
+pacstrap -K $MNT base linux linux-firmware  networkmanager reflector grub
 
 genfstab -U $MNT >> $MNT/etc/fstab
 
