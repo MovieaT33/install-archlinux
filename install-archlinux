@@ -187,7 +187,7 @@ install_grub() {
     local mnt="$1"
 
     echo "Installing GRUB..."
-    arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory="/boot" --bootloader-id=GRUB --recheck
+    arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory="/boot/efi" --bootloader-id=GRUB --recheck
     echo "GRUB installed."
 
     echo "Generating GRUB configuration file..."
