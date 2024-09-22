@@ -76,7 +76,7 @@ verify_system_clock() {
 }
 
 partition_disk() {
-    fdisk $DISK | <<EOF
+    fdisk $DISK <<EOF
     g
     n
     1
@@ -99,5 +99,5 @@ verify_boot_mode
 verify_internet_connection
 verify_system_clock
 
-DISK=/dev/vda
+DISK="/dev/vda"
 partition_disk
