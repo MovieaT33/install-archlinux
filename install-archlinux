@@ -1,4 +1,4 @@
-#!/bin/bash
+1#!/bin/bash
 
 # Installation script with LUKS encryption using LVM for Arch Linux with UEFI 64-bit.
 # Copyright (C) 2024  MovieaT33
@@ -145,6 +145,15 @@ generate_fstab() {
     genfstab -U "$mnt" >> "${mnt}/etc/fstab"
 }
 
+set_time_zone() {
+    local mnt="$1"
+    local region="$2"
+    local city="$3"
+
+    arch-chroot "$mnt" ln -sf "/usr/share/zoneinfo/${region}/${city}" "/etc/localtime"
+    arch-chroot "$mnt" hwclock --systohc
+}
+
 set_console_keyboard_layout "us"
 set_default_font # set_large_font
 verify_boot_mode
@@ -177,4 +186,12 @@ pacstrap -K "$MNT" base linux linux-firmware \
                    networkmanager reflector \
                    lvm2 grub efibootmgr
 
+REGION=Europe
+CITY=London
+
 generate_fstab "$MNT"
+set_time_zone "$MNT" "$REGION" "$CITY"
+
+arch-chroot "$MNT" mkinitcpio -P
+arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --recheck
+arch-chroot "$MNT" grub-mkconfig -o /boot/grub/grub.cfg
