@@ -94,7 +94,7 @@ EOF
 }
 
 set_console_keyboard_layout "us"
-set_large_font
+set_default_font # set_large_font
 verify_boot_mode
 verify_internet_connection
 verify_system_clock
