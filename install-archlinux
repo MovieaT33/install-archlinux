@@ -187,6 +187,7 @@ install_grub() {
     local mnt="$1"
 
     echo "Installing GRUB..."
+    arch-chroot "$MNT" sed -i "/s#GRUB_ENABLE_CRYPTO_DISK=y/GRUB_ENABLE_CRYPTO_DISK=y/" "/etc/default/grub"
     arch-chroot "$MNT" grub-install --target=x86_64-efi --efi-directory="/boot/efi" --bootloader-id=GRUB --recheck
     echo "GRUB installed."
 
@@ -276,7 +277,6 @@ echo "Creating initramfs..."
 arch-chroot "$MNT" mkinitcpio -P
 echo "initramfs created."
 
-echo "Installing GRUB..."
 install_grub
 
 echo "Enabling NetworkManager..."
