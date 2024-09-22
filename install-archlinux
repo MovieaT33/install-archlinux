@@ -1,9 +1,32 @@
 #!/bin/bash
 
-EXPECTED_UEFI_BITNESS=64
-DEVICE=/dev/vda
+CONSOLE_KEYMAP=us
 
-loadkeys us
+EXPECTED_UEFI_BITNESS=64
+
+DEVICE=/dev/vda
+EFI_SYSTEM=/dev/vda1
+LINUX_LVM=/dev/vda2
+
+LUKS_MAP=crypt
+LUKS_VOLUME=vg0
+SWAP_SIZE=4G
+
+MNT=/mnt
+BOOT=$MNT/boot/efi
+
+COUNTRY='"United Kingdom"'
+REFLECTOR_AGE=6
+REFLECTOR_PROTOCOL=https
+
+REGION=Europe
+CITY=London
+
+HOSTNAME=archlinux
+
+NEW_USERNAME=nicolas
+
+loadkeys $CONSOLE_KEYMAP
 
 # setfont ter-132b
 
@@ -32,5 +55,52 @@ n
 t
 2
 Linux LVM
-wq
+w
 EOF
+
+cryptsetup luksFormat $LINUX_LVM
+cryptsetup open       $LINUX_LVM $LUKS_MAP
+
+pvcreate              /dev/mapper/$LUKS_MAP
+vgcreate $LUKS_VOLUME /dev/mapper/$LUKS_MAP
+
+lvcreate -L $SWAP_SIZE $LUKS_VOLUME -n swap
+lvcreate -l 100%FREE   $LUKS_VOLUME -n root
+
+mkfs.fat -F 32              $EFI_SYSTEM
+mkfs.ext4 /dev/mapper/$LUKS_VOLUME-root
+mkswap    /dev/mapper/$LUKS_VOLUME-swap
+
+mount  /dev/mapper/$LUKS_VOLUME-root $MNT
+mount  --mkdir     $EFI_SYSTEM       $BOOT
+swapon /dev/mapper/$LUKS_VOLUME-swap
+
+pacstrap $MNT /mnt base linux linux-firmware  networkmanager reflector grub
+
+genfstab -U $MNT >> $MNT/etc/fstab
+
+arch-chroot $MNT reflector -c $COUNTRY --age $REFLECTOR_AGE --protocol $REFLECTOR_PROTOCOL --sort rate --save /etc/pacman.d/mirrorlist
+arch-chroot $MNT systemctl enable reflector.timer
+
+arch-chroot $MNT ln -sf /usr/share/zoneinfo/$REGION/$CITY /etc/localtime
+arch-chroot $MNT hwclock --systohc
+
+arch-chroot $MNT sed -i '/^# *en_US\.UTF-8 UTF-8/s/^# *//' /etc/locale.gen
+arch-chroot $MNT locale-gen
+arch-chroot $MNT LANG=en_US.UTF-8 >                        /etc/locale.conf
+arch-chroot $MNT KEYMAP=$CONSOLE_KEYMAP                    /etc/vconsole.conf
+arch-chroot $MNT $HOSTNAME >                               /etc/hostname
+
+arch-chroot $MNT mkinitcpio -P
+
+arch-chroot $MNT passwd
+
+arch-chroot $MNT sed -i "s/^GRUB_CMDLINE_LINUX=\"/&cryptdevice=UUID=$(blkid -s UUID -o value $LINUX_LVM):${LUKS_VOLUME} root=\/dev\/mapper\/${LUKS_VOLUME}-root/" /etc/default/grub
+arch-chroot $MNT sed -i "/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y"                                                                         /etc/default/grub
+
+arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory=$BOOT --bootloader-id=GRUB
+arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
+
+arch-chroot $MNT useradd -mG wheel $NEW_USERNAME
+arch-chroot $MNT password $NEW_USERNAME
+arch-chroot $MNT sudo sed -i "s/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/" /etc/sudoers
