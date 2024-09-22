@@ -17,6 +17,6 @@ if ! ping -c 1 archlinux.com > /dev/null; then
 	exit 1
 fi
 
-fdisk $DEVICE "
-g
 "
+g
+" | fdisk $DEVICE
