@@ -35,13 +35,13 @@ set_large_font() {
 }
 
 get_uefi_mode() {
-	echo cat /sys/firmware/efi/fw_platform_size
+	return ${cat /sys/firmware/efi/fw_platform_size}
 }
 
 verify_boot_mode() {
 	local EXPECTED_UEFI_BITNESS=64
 
-	local uefi_mode=get_uefi_mode()
+	local uefi_mode=${get_uefi_mode()}
 	if [[ uefi_mode -ne $EXPECTED_UEFI_BITNESS ]]; then
 		echo "Unsupported UEFI mode"
 		exit 1
