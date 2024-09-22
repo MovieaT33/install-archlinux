@@ -48,17 +48,27 @@ get_uefi_mode() {
 }
 
 verify_boot_mode() {
-	local EXPECTED_UEFI_BITNESS=64
+    local EXPECTED_UEFI_BITNESS=64
 
-	local uefi_mode=$(get_uefi_mode)
-	if [[ "$uefi_mode" -ne "$EXPECTED_UEFI_BITNESS" ]]; then
-        	echo "Unsupported UEFI mode: $uefi_mode-bit. Expected: $EXPECTED_UEFI_BITNESS-bit."
-        	exit 1
-   	else
-        	echo "UEFI mode is supported: $uefi_mode-bit."
-    	fi
+    local uefi_mode=$(get_uefi_mode)
+    if [[ "$uefi_mode" -ne "$EXPECTED_UEFI_BITNESS" ]]; then
+        echo "Unsupported UEFI mode: $uefi_mode-bit. Expected: $EXPECTED_UEFI_BITNESS-bit."
+        exit 1
+    else
+        echo "UEFI mode is supported: $uefi_mode-bit."
+    fi
+}
+
+verify_internet_connection() {
+    local HOST="archlinux.com"
+
+    if ! ping -c 1 archlinux.com > /dev/null; then
+        echo "No internet connection"
+        exit 1
+    fi
 }
 
 set_console_keyboard_layout "us"
 set_large_font
 verify_boot_mode
+verify_internet_connection
