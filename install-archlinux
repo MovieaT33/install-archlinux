@@ -69,10 +69,28 @@ verify_internet_connection() {
 }
 
 verify_system_clock() {
-    if ! timedatectl | grep "Time zone: UTC-test" > /dev/null; then
+    if ! timedatectl | grep "Time zone: UTC" > /dev/null; then
         echo "Unsynced system clock"
         exit 1
     fi
+}
+
+partition_disk() {
+    fdisk $DISK | <<EOF
+    g
+    n
+    1
+
+    +1G
+    t
+    EFI System
+    n
+    2
+
+
+    t
+    Linux LVM
+    EOF
 }
 
 set_console_keyboard_layout "us"
@@ -80,3 +98,6 @@ set_large_font
 verify_boot_mode
 verify_internet_connection
 verify_system_clock
+
+DISK=/dev/vda
+partition_disk
