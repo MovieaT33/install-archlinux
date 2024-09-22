@@ -132,8 +132,7 @@ ff02::2         ip6-allrouters" > /etc/hosts
 # arch-chroot $MNT mkinitcpio -P
 arch-chroot $MNT sed -i "s/MODULES=()/MODULES=(ext4)/" /etc/mkinitcpio.conf
 arch-chroot $MNT sed -i "s/HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block filesystems fsck)/HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont ecnrypt lvm2 block filesystems fsck)/" /etc/mkinitcpio.conf
-arch-chroot $MNT mkinitcpio -p linux
-arch-chroot $MNT mkinitcpio -p linux-lts
+arch-chroot $MNT mkinitcpio -p linux linux-lts
 
 arch-chroot $MNT passwd
 
