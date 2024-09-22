@@ -126,6 +126,6 @@ arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory=$BOOT --bootlo
 arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
 
 arch-chroot $MNT useradd -mG wheel $NEW_USERNAME
-arch-chroot $MNT password $NEW_USERNAME
+arch-chroot $MNT passwd $NEW_USERNAME
 arch-chroot $MNT sudo sed -i "s/# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/" /etc/sudoers
 # TODO: check all
