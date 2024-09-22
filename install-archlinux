@@ -22,14 +22,16 @@ EXPECTED_UEFI_BITNESS=64
 
 DEVICE=/dev/vda
 EFI_SYSTEM=/dev/vda1
-LINUX_LVM=/dev/vda2
+BOOT_PARTITION=/dev/vda2
+LINUX_LVM=/dev/vda3
 
 LUKS_MAP=crypt
 LUKS_VOLUME=vg0
 SWAP_SIZE=4G
 
 MNT=/mnt
-BOOT=/boot/efi
+BOOT_DIR=/boot
+EFI_DIR=$BOOT_DIR/efi
 
 COUNTRY="United Kingdom"
 REFLECTOR_AGE=6
@@ -61,15 +63,17 @@ g
 n
 1
 
-+1G
++300M
 t
 EFI System
 n
 2
 
 
+n
+3
 t
-2
+3
 Linux LVM
 w
 EOF
@@ -88,15 +92,23 @@ mkfs.ext4 /dev/mapper/$LUKS_VOLUME-root
 mkswap    /dev/mapper/$LUKS_VOLUME-swap
 
 mount  /dev/mapper/$LUKS_VOLUME-root $MNT
-mount  --mkdir     $EFI_SYSTEM       $MNT/$BOOT
+mount  --mkdir     $BOOT_PARTITION   $MNT/$BOOT_DIR
+mount  --mkdir     $EFI_SYSTEM       $MNT/$EFI_DIR
 swapon /dev/mapper/$LUKS_VOLUME-swap
+
+# pacstrap -K $MNT base linux linux-firmware \
+#                  networkmanager reflector \
+#                  grub efibootmgr \
+#                  sudo
 
 pacstrap -K $MNT base linux linux-firmware \
                  networkmanager reflector \
-                 grub efibootmgr \
+                 lvm2 base-devel grub efibootmgr dosfstools os-prober \
+                 linux-lts linux-headers linux-lts-headers \
                  sudo
 
-genfstab -U $MNT >> $MNT/etc/fstab
+# genfstab -U $MNT >> $MNT/etc/fstab
+genfstab -Up $MNT >> $MNT/etc/fstab
 
 arch-chroot $MNT reflector -c "$COUNTRY" --age $REFLECTOR_AGE --protocol $REFLECTOR_PROTOCOL --sort rate --save /etc/pacman.d/mirrorlist &
 arch-chroot $MNT systemctl enable reflector.timer
@@ -115,15 +127,19 @@ arch-chroot $MNT "
 ff02::1         ip6-allnodes
 ff02::2         ip6-allrouters" > /etc/hosts
 
-arch-chroot $MNT mkinitcpio -P
+# arch-chroot $MNT mkinitcpio -P
+arch-chroot $MNT sed -i "s/MODULES=()/MODULES=(ext4)/" /etc/mkinitcpio.conf
+arch-chroot $MNT sed -i "s/HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block filesystems fsck)/HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont ecnrypt lvm2 block filesystems fsck)/" /etc/mkinitcpio.conf
+arch-chroot $MNT mkinitcpio -p linux
+arch-chroot $MNT mkinitcpio -p linux-lts
 
 arch-chroot $MNT passwd
 
-arch-chroot $MNT sed -i "s/^GRUB_CMDLINE_LINUX=\"/&loglevel=3 cryptdevice=UUID=$(blkid -s UUID -o value $LINUX_LVM):${LUKS_VOLUME} root=\/dev\/mapper\/${LUKS_VOLUME}-root/" /etc/default/grub
-arch-chroot $MNT sed -i "/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y"                                                                                    /etc/default/grub
-arch-chroot $MNT sed -i "s/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/"                                                                                      /etc/default/grub
+arch-chroot $MNT sed -i "s/^GRUB_CMDLINE_LINUX=\"/&loglevel=3 cryptdevice=UUID=$(blkid -s UUID -o value $LINUX_LVM):luks:allow-discards/" /etc/default/grub
+# arch-chroot $MNT sed -i "/^#GRUB_ENABLE_CRYPTODISK=/s/^#//; \$a GRUB_ENABLE_CRYPTODISK=y"                                                                                    /etc/default/grub
+# arch-chroot $MNT sed -i "s/#GRUB_DISABLE_OS_PROBER=false/GRUB_DISABLE_OS_PROBER=false/"                                                                                      /etc/default/grub
 
-arch-chroot $MNT grub-install --target=x86_64-efi --efi-directory=$BOOT --bootloader-id=GRUB
+arch-chroot $MNT grub-install --target=x86_64-efi --bootloader-id=grub_uefi
 arch-chroot $MNT grub-mkconfig -o /boot/grub/grub.cfg
 
 arch-chroot $MNT useradd -mG wheel $NEW_USERNAME
