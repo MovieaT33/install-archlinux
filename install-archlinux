@@ -24,5 +24,11 @@ n
 
 +1G
 t
+EFI System
+n
+2
+
+
+t
 Linux LVM
 EOF
