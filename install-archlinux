@@ -31,7 +31,7 @@ SWAP_SIZE=4G
 MNT=/mnt
 BOOT=/boot/efi
 
-COUNTRY=United Kingdom
+COUNTRY="United Kingdom"
 REFLECTOR_AGE=6
 REFLECTOR_PROTOCOL=https
 
