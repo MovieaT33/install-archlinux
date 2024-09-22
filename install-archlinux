@@ -37,9 +37,9 @@ set_large_font() {
 get_uefi_mode() {
 	if [[ -d /sys/firmware/efi ]]; then
         	if [[ "$(getconf LONG_BIT)" -eq 64 ]]; then
-            		echo 64
+            		return 64
         	else
-            		echo 32
+            		return 32
         	fi
     	else
         	echo "Not in UEFI mode"
@@ -51,10 +51,13 @@ verify_boot_mode() {
 	local EXPECTED_UEFI_BITNESS=64
 
 	local uefi_mode=${get_uefi_mode}
-	if [[ $uefi_mode -ne $EXPECTED_UEFI_BITNESS ]]; then
-		echo "Unsupported UEFI mode $uefi_mode"
-		exit 1
-	fi
+
+	if [[ "$uefi_mode" -ne "$EXPECTED_UEFI_BITNESS" ]]; then
+        	echo "Unsupported UEFI mode: $uefi_mode-bit. Expected: $EXPECTED_UEFI_BITNESS-bit."
+        	exit 1
+   	else
+        	echo "UEFI mode is supported: $uefi_mode-bit."
+    	fi
 }
 
 set_console_keyboard_layout "us"
