@@ -17,34 +17,34 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 set_console_keyboard_layout() {
-	local console_keymap="$1"
-	loadkeys "$console_keymap"
+    local console_keymap="$1"
+    loadkeys "$console_keymap"
 }
 
 set_font() {
-	local font="$1"
-	setfont "$font"
+    local font="$1"
+    setfont "$font"
 }
 
 set_default_font() {
-	set_font ""
+    set_font ""
 }
 
 set_large_font() {
-	set_font "ter-132b"
+    set_font "ter-132b"
 }
 
 get_uefi_mode() {
-	if [[ -d /sys/firmware/efi ]]; then
-        	if [[ "$(getconf LONG_BIT)" -eq 64 ]]; then
-            		return 64
-        	else
-            		return 32
-        	fi
-    	else
-        	echo "Not in UEFI mode"
-        	exit 1
-    	fi
+    if [[ -d /sys/firmware/efi ]]; then
+        if [[ "$(getconf LONG_BIT)" -eq 64 ]]; then
+            echo 64
+        else
+            echo 32
+        fi
+    else
+        echo "Not in UEFI mode"
+        exit 1
+    fi
 }
 
 verify_boot_mode() {
