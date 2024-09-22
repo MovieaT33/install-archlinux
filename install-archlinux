@@ -77,20 +77,20 @@ verify_system_clock() {
 
 partition_disk() {
     fdisk $DISK <<EOF
-    g
-    n
-    1
+g
+n
+1
 
-    +1G
-    t
-    EFI System
-    n
-    2
++1G
+t
+EFI System
+n
+2
 
 
-    t
-    Linux LVM
-    EOF
+t
+Linux LVM
+EOF
 }
 
 set_console_keyboard_layout "us"
