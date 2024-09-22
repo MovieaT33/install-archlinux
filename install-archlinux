@@ -118,6 +118,33 @@ create_volume_group() {
     vgcreate "$volume_name" "/dev/mapper/${mapping_name}"
 }
 
+create_logical_volumes() {
+    local volume_name="$1"
+
+    lvcreate -L 4G "$volume_name" -n swap
+    lvcreate -l 100%FREE "$volume_name" -n root
+}
+
+make_efi_system() {
+    local efi_system="$1"
+    mkfs.fat -F32 "$efi_system"
+}
+
+make_linux_filesystem() {
+    local linux_filesystem="$1"
+    mkfs.ext4 "$linux_filesystem"
+}
+
+make_swap() {
+    local swap="$1"
+    mkswap "$swap"
+}
+
+generate_fstab() {
+    local mnt="$1"
+    genfstab -U "$mnt" >> "${mnt}/etc/fstab"
+}
+
 set_console_keyboard_layout "us"
 set_default_font # set_large_font
 verify_boot_mode
@@ -125,12 +152,29 @@ verify_internet_connection
 verify_system_clock
 
 DISK="/dev/vda"
+EFI_SYSTEM="/dev/vda1"
 LINUX_LVM="/dev/vda2"
 MAPPING_NAME="crypt"
 VOLUME_NAME="vg0"
+MNT="/mnt"
 
 partition_disk
 format_luks_disk "$LINUX_LVM"
 create_luks_disk_mapping "$LINUX_LVM" "$MAPPING_NAME"
 create_physical_volume "$MAPPING_NAME"
 create_volume_group "$VOLUME_NAME" "$MAPPING_NAME"
+create_logical_volumes "$VOLUME_NAME"
+
+make_efi_system "$EFI_SYSTEM"
+make_linux_filesystem "/dev/mapper/${VOLUME_NAME}-root"
+make_swap "/dev/mapper/${VOLUME_NAME}-swap"
+
+mount "/dev/mapper/${VOLUME_NAME}-root" "$MNT"
+mount --mkdir "$EFI_SYSTEM" "${MNT}/boot/efi"
+swapon "/dev/mapper/${VOLUME_NAME}-swap"
+
+pacstrap -K "$MNT" base linux linux-firmware \
+                   networkmanager reflector \
+                   lvm2 grub efibootmgr
+
+generate_fstab "$MNT"
