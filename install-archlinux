@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-function set_console_keyboard_layout(console_keymap) {
+function set_console_keyboard_layout() {
+	local console_keymap = "$1";
 	loadkeys console_keymap
 }
 
-set_console_keyboard_layout("us")
+set_console_keyboard_layout "us"
