@@ -31,7 +31,7 @@ SWAP_SIZE=4G
 MNT=/mnt
 BOOT=/boot/efi
 
-COUNTRY='"United Kingdom"'
+COUNTRY=United Kingdom
 REFLECTOR_AGE=6
 REFLECTOR_PROTOCOL=https
 
@@ -97,7 +97,7 @@ pacstrap -K $MNT base linux linux-firmware \
 
 genfstab -U $MNT >> $MNT/etc/fstab
 
-arch-chroot $MNT reflector -c $COUNTRY --age $REFLECTOR_AGE --protocol $REFLECTOR_PROTOCOL --sort rate --save /etc/pacman.d/mirrorlist
+arch-chroot $MNT reflector -c "$COUNTRY" --age $REFLECTOR_AGE --protocol $REFLECTOR_PROTOCOL --sort rate --save /etc/pacman.d/mirrorlist
 arch-chroot $MNT systemctl enable reflector.timer
 
 arch-chroot $MNT ln -sf /usr/share/zoneinfo/$REGION/$CITY /etc/localtime
