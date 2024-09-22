@@ -108,6 +108,11 @@ arch-chroot $MNT locale-gen
 arch-chroot $MNT LANG=en_US.UTF-8 >                        /etc/locale.conf
 arch-chroot $MNT KEYMAP=$CONSOLE_KEYMAP                    /etc/vconsole.conf
 arch-chroot $MNT $HOSTNAME >                               /etc/hostname
+arch-chroot $MNT "
+127.0.0.1       localhost
+::1             localhost ip6-localhost ip6-loopback
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters" > /etc/hosts
 
 arch-chroot $MNT mkinitcpio -P
 
